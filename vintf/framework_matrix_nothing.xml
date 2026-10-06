@@ -25,4 +25,25 @@
             <instance>default</instance>
         </interface>
     </hal>
+    <!-- C307（2026-10-06 ★發布阻擋級★）：bacon 的 check_vintf_compatible 要求
+         device manifest 內宣告的每個 HAL 都必須出現在 framework compatibility matrix ✓
+         實測錯誤原文 ✓：
+           ERROR: files are incompatible: The following instances are in the device manifest
+             but not specified in framework compatibility matrix:
+               vendor.noth.hardware.thermal.IThermalControl/default (@1)
+         ⇒ 補上對應條目（optional="true" ⇒ 雙向都不強制 ✓ 最安全 ✓） -->
+    <hal format="aidl" optional="true">
+        <name>vendor.noth.hardware.thermal</name>
+        <interface>
+            <name>IThermalControl</name>
+            <instance>default</instance>
+        </interface>
+    </hal>
+    <hal format="aidl" optional="true">
+        <name>vendor.qti.memory.pasrmanager</name>
+        <interface>
+            <name>IPasrManager</name>
+            <instance>default</instance>
+        </interface>
+    </hal>
 </compatibility-matrix>

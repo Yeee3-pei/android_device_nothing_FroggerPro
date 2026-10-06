@@ -138,6 +138,20 @@ AUDIO_HAL_DIR := hardware/qcom-caf/sm8750/audio/primary-hal
 CONFIG_HAL_SRC_DIR := $(AUDIO_HAL_DIR)/configs/sun
 CONFIG_PAL_SRC_DIR := $(AUDIO_HAL_DIR)/../pal/configs/sun
 
+# ══════════════════════════════════════════════════════════════════════
+# C306（2026-10-06 ★發布阻擋級修正★）：audio_policy_configuration.xml 放錯層級 ✗
+#   實機症狀 ✓：STREAM_MUSIC／STREAM_VOICE_CALL／STREAM_SYSTEM 的 Max = 0 ✗
+#              ⇒ 音量完全無法調整 ✗（`cmd media_session volume --get` 回
+#                 「volume is 0 in range [0..0]」✗；調大反而變 0 ✗）
+#   真因 ✓：原廠有兩份 ——
+#     ① /vendor/etc/audio_policy_configuration.xml（16,971 B ✓ 完整版）
+#        內含 <xi:include href="audio_policy_volumes.xml"/> ✓
+#            <xi:include href="default_volume_tables.xml"/> ✓ ← 音量表本體 ✓
+#     ② /vendor/etc/audio/sku_kera/audio_policy_configuration.xml（9,999 B ✓ SKU 精簡版）
+#   我方原本把 ② 放到 ① 的位置 ✗ ⇒ 音量表從未被 include ⇒ Max 全算成 0 ✗✗
+#   修法 ✓：① 改用原廠完整版逐字複製（vendor/nothing/FroggerPro/etc/audio_policy_configuration.xml）
+#           ② 位置與內容不動 ✓
+# ══════════════════════════════════════════════════════════════════════
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/conf/audio/audio_module_config_primary.xml:$(TARGET_COPY_OUT_VENDOR)/etc/audio/audio_module_config_primary.xml \
     $(LOCAL_PATH)/conf/audio/mixer_paths_kera_qrd.xml:$(TARGET_COPY_OUT_VENDOR)/etc/audio/sku_kera/mixer_paths_kera_qrd.xml \
@@ -148,7 +162,7 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/conf/audio/usecaseKvManager.xml:$(TARGET_COPY_OUT_VENDOR)/etc/usecaseKvManager.xml \
     $(LOCAL_PATH)/conf/audio/audio_policy_volumes.xml:$(TARGET_COPY_OUT_VENDOR)/etc/audio/sku_kera/audio_policy_volumes.xml \
     $(LOCAL_PATH)/conf/audio/audio_policy_configuration.xml:$(TARGET_COPY_OUT_VENDOR)/etc/audio/sku_kera/audio_policy_configuration.xml \
-    $(LOCAL_PATH)/conf/audio/audio_policy_configuration.xml:$(TARGET_COPY_OUT_VENDOR)/etc/audio_policy_configuration.xml \
+    vendor/nothing/FroggerPro/etc/audio_policy_configuration.xml:$(TARGET_COPY_OUT_VENDOR)/etc/audio_policy_configuration.xml \
     $(LOCAL_PATH)/conf/audio/audio_effects.conf:$(TARGET_COPY_OUT_VENDOR)/etc/audio/sku_kera/audio_effects.conf \
     $(LOCAL_PATH)/conf/audio/audio_effects.xml:$(TARGET_COPY_OUT_VENDOR)/etc/audio/sku_kera/audio_effects.xml \
     $(LOCAL_PATH)/conf/audio/audio_effects.xml:$(TARGET_COPY_OUT_VENDOR)/etc/audio_effects.xml \
