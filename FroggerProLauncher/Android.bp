@@ -1,0 +1,17 @@
+// FroggerPro Launcher —— 仿 Nothing Launcher（自製 ✓）
+android_app {
+    name: "FroggerProLauncher",
+    srcs: ["src/**/*.java"],
+    manifest: "AndroidManifest.xml",
+    resource_dirs: ["res"],
+    asset_dirs: ["assets"],
+    certificate: "platform",
+    privileged: false,
+    platform_apis: true,
+    min_sdk_version: "34",
+    sdk_version: "",
+    optimize: {
+        enabled: false,
+    },
+    required: [],
+}

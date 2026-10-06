@@ -1,0 +1,36 @@
+//
+// SPDX-FileCopyrightText: The LineageOS Project
+// SPDX-License-Identifier: Apache-2.0
+//
+// FroggerPro 隱私設定（骨架）
+//
+// 設計原則（見 ~/nphone/PLAN_two_builds_privacy_tiers.md v3）：
+//   - 每個開關都必須對應【真實的系統行為】並附可重現的驗證方法，否則不列入 ✓
+//   - 執行期可切換的才放這裡；建置期基線（SELinux／核心參數等）不放進來 ✗
+//   - 放在 device tree（不放 hardware/nothing 上游 ✓）以避免分叉上游 ✓
+android_app {
+    name: "FroggerProPrivacy",
+
+    srcs: ["src/**/*.java"],
+    resource_dirs: ["res"],
+    manifest: "AndroidManifest.xml",
+
+    // 需要 platform 簽章與 privileged 身分才能寫入 secure/global settings
+    platform_apis: true,
+    certificate: "platform",
+    privileged: true,
+
+    required: ["privapp_whitelist_FroggerProPrivacy"],
+
+    optimize: {
+        enabled: true,
+        shrink: false,
+    },
+}
+
+prebuilt_etc {
+    name: "privapp_whitelist_FroggerProPrivacy",
+    src: "privapp-permissions-FroggerProPrivacy.xml",
+    sub_dir: "permissions",
+    filename_from_src: true,
+}

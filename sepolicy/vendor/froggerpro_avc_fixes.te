@@ -1,0 +1,20 @@
+# froggerpro_avc_fixes.te —— 實機 avc denial 的修正（逐條都有 logcat 原文為證 ✓）
+#
+# 來源：2026-10-04 V-a 版（_b）上實測的 logcat ✓
+# 原則：只用【已存在於政策中】的型別 ✓ 不用新名字 ✗
+#       每一條都附原始 denial 出處 ✓ 可回溯 ✓
+#
+# ── 1) xtra-daemon（vendor_location）每秒被拒讀 vndbinder ──────────────
+#   avc: denied { read } for name="vndbinder" dev="binder" ino=6
+#     scontext=u:r:vendor_location:s0
+#     tcontext=u:object_r:vndbinder_device:s0 tclass=chr_file permissive=0
+#   影響：log 每秒被洗一次（3000 行內出現數百次 ✗）＋ 定位服務功能受限 ✗
+allow vendor_location vndbinder_device:chr_file { read open getattr };
+
+# ── 2) Nothing 充電 HAL（hal_nt_charger）被拒讀 /proc/usb_real_type ────
+#   avc: denied { read } for name="usb_real_type" dev="proc" ino=4026534730
+#     scontext=u:r:hal_nt_charger:s0
+#     tcontext=u:object_r:proc:s0 tclass=file permissive=0
+#   影響：充電 HAL 讀不到 USB 線材型別 ⇒ 充電判斷／顯示可能不正確 ✗
+#   註：proc 是泛用型別 ⇒ 這條是廣域讀取允許 ✓（與平台既有寫法一致 ✓）
+allow hal_nt_charger proc:file { read open getattr };

@@ -4,4 +4,5 @@
 #
 
 PRODUCT_MAKEFILES := \
-    $(LOCAL_DIR)/lineage_FroggerPro.mk
+    $(LOCAL_DIR)/lineage_FroggerPro.mk \
+    $(LOCAL_DIR)/lineage_FroggerPro_privacy.mk

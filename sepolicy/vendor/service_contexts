@@ -1,0 +1,31 @@
+# 2026-10-05：原廠 service_contexts 移植【撤回】✗
+# 原因 ✓：AOSP neverallow 硬性禁止 ✗
+#   neverallow domain base_typeattr_984 (service_manager (add find))
+#   from system/sepolicy/private/service.te:84 ✗
+#   neverallow domain base_typeattr_778 (hwservice_manager (add find))
+#   from system/sepolicy/private/hwservice.te:10 ✗
+# ⇒ AOSP 設計上【不允許任何 domain 自己 add 到 service_manager】✗
+#   ⇒ 正確做法須走 type_transition / 既有 type ✓（後續研究 ✓）
+# ⇒ 備份 ✓：service_contexts.bak_ported_keep（11,766 B ✓）
+#
+# ══════════════════════════════════════════════════════════════════════
+# 2026-10-06 C296：修 vendor.noth.hardware.thermal-service 5 秒崩潰迴圈 ✓
+#
+# 根因 ✓：此 AIDL 服務名無 service_contexts 對應 ✗
+#   ⇒ 註冊時 type 落回 u:object_r:default_android_service:s0 ✗
+#   ⇒ domain.te:819『neverallow * default_android_service:service_manager *』✗
+#      硬性禁止【任何】domain 取得 default_android_service 權限 ✗
+#   ⇒ 因此無法用『加一條 allow』修 ✗（會直接觸發 neverallow 建置失敗 ✓ 前車之鑑 ✓）
+#
+# 正解 ✓：把服務名對應到【既有且合法的】service_manager_type ✓
+#   hal_thermal_service 在 public/service.te:360 已宣告為 service_manager_type ✓
+#   且 system/sepolicy/private/hal_thermal.te:8 有
+#       add_service(hal_thermal_server, hal_thermal_service)
+#   ⇒ 已自動授予 hal_thermal_default（∈ hal_thermal_server）add/find ✓
+#   ⇒ 只要補上這一行對應，服務就能成功註冊 ✓（不需新增任何 allow ✗）
+#
+# 對照同檔既有成功案例 ✓：
+#   vendor.noth.hardware.charge.ICharge/default        → vendor_hal_charge_service ✓
+#   vendor.noth.hardware.sensor...ISensorExtension/... → hal_sensors_service ✓
+# ══════════════════════════════════════════════════════════════════════
+vendor.noth.hardware.thermal.IThermalControl/default    u:object_r:hal_thermal_service:s0

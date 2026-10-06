@@ -2,7 +2,98 @@
 /vendor/lib(64)?/libsdmextension\.so                          u:object_r:same_process_hal_file:s0
 
 # Vibrator
-/dev/aw86927_haptic                                                          u:object_r:aac_richtap_device:s0
 
 # ZRAM
 /data/per_boot(/.*)?    u:object_r:per_boot_file:s0
+
+# Glyph matrix LED device
+/dev/matrix-leds    u:object_r:glyph_matrix_device:s0
+
+# C201：補齊 blob file_contexts 缺的三條（原廠有 ✓ 我方漏 ✗）
+#   真因：缺這三條 ⇒ 三個 HAL 落到通用 u:object_r:vendor_file:s0 ✗
+#        ⇒ init 無法 exec（ls 顯示 -????????? ✗）⇒ 服務從未啟動 ✗
+#        ⇒ 感測器 0 個 ✗／震動 ✗／指紋 ✗（三 BUG 同一根因 ✓）
+#   證據：機上 ls -laZ 三個檔全是 vendor_file:s0 ✗；原廠 OTA vendor_file_contexts 有這三條 ✓
+# 感測器主 HAL（BUG-009 ✓）
+/(vendor|system/vendor)/bin/hw/android\.hardware\.sensors-service\.froggerpro-multihal u:object_r:hal_sensors_default_exec:s0
+# 震動 HAL（froggerpro-richtap 變體 ✓）
+
+# 原廠震動 HAL（C ✓ 2026-10-04）：我方改用原廠那顆（自製版驅動不了硬體 ✗ 已停用 ✓）
+/(vendor|system/vendor)/bin/hw/vendor\.qti\.hardware\.vibrator\.service   u:object_r:hal_vibrator_default_exec:s0
+/(vendor|system/vendor)/bin/hw/vendor\.qti\.hardware\.vibrator\.service\.impl u:object_r:hal_vibrator_default_exec:s0
+/(vendor|system/vendor)/bin/hw/android\.hardware\.vibrator\.service\.froggerpro-richtap u:object_r:hal_vibrator_default_exec:s0
+# 指紋 HAL（原廠有、我方 blob 漏 ✓）
+
+# === V-a: 原廠震動節點條目（APPLY_Va.py ✓）===
+/sys/devices/platform/soc/ac0000.qcom,qupv3_1_geni_se/a88000.i2c/i2c-2/2-005f/leds/vibrator_nt/f0                   u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/ac0000.qcom,qupv3_1_geni_se/a88000.i2c/i2c-2/2-005f/leds/vibrator_nt/vbst                 u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/ac0000.qcom,qupv3_1_geni_se/a88000.i2c/i2c-2/2-005f/leds/vibrator_nt/gain                 u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/ac0000.qcom,qupv3_1_geni_se/a88000.i2c/i2c-2/2-005f/leds/vibrator_nt/play                  u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/8c0000.qcom,qupv3_2_geni_se/89c000.i2c/i2c-15/15-005a/leds/vibrator_nt/f0               u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/ac0000.qcom,qupv3_1_geni_se/a88000.i2c/i2c-2/2-005f/leds/vibrator_nt/f0_en                 u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/ac0000.qcom,qupv3_1_geni_se/a88000.i2c/i2c-2/2-005f/leds/vibrator_nt/state                 u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/ac0000.qcom,qupv3_1_geni_se/a88000.i2c/i2c-2/2-005f/leds/vibrator_nt/lk_f0                 u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/8c0000.qcom,qupv3_2_geni_se/89c000.i2c/i2c-15/15-005a/leds/vibrator_nt/reg              u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/8c0000.qcom,qupv3_2_geni_se/89c000.i2c/i2c-15/15-005a/leds/vibrator_nt/rtp              u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/8c0000.qcom,qupv3_2_geni_se/89c000.i2c/i2c-15/15-005a/leds/vibrator_nt/seq              u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/8c0000.qcom,qupv3_2_geni_se/89c000.i2c/i2c-15/15-005a/leds/vibrator_nt/gpp              u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/ac0000.qcom,qupv3_1_geni_se/a88000.i2c/i2c-2/2-005f/leds/vibrator_nt/daq_en               u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/8c0000.qcom,qupv3_2_geni_se/89c000.i2c/i2c-15/15-005a/leds/vibrator_nt/cali             u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/8c0000.qcom,qupv3_2_geni_se/89c000.i2c/i2c-15/15-005a/leds/vibrator_nt/vmax             u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/8c0000.qcom,qupv3_2_geni_se/89c000.i2c/i2c-15/15-005a/leds/vibrator_nt/gain             u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/8c0000.qcom,qupv3_2_geni_se/89c000.i2c/i2c-15/15-005a/leds/vibrator_nt/play             u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/8c0000.qcom,qupv3_2_geni_se/89c000.i2c/i2c-15/15-005a/leds/vibrator_nt/vbat             u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/8c0000.qcom,qupv3_2_geni_se/89c000.i2c/i2c-15/15-005a/leds/vibrator_nt/loop             u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/8c0000.qcom,qupv3_2_geni_se/89c000.i2c/i2c-15/15-005a/leds/vibrator_nt/awrw             u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/ac0000.qcom,qupv3_1_geni_se/a88000.i2c/i2c-2/2-005f/leds/vibrator_nt/chip_id               u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/8c0000.qcom,qupv3_2_geni_se/89c000.i2c/i2c-15/15-005a/leds/vibrator_nt/index            u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/8c0000.qcom,qupv3_2_geni_se/89c000.i2c/i2c-15/15-005a/leds/vibrator_nt/reset            u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/8c0000.qcom,qupv3_2_geni_se/89c000.i2c/i2c-15/15-005a/leds/vibrator_nt/state            u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/8c0000.qcom,qupv3_2_geni_se/89c000.i2c/i2c-15/15-005a/leds/vibrator_nt/lk_f0            u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/ac0000.qcom,qupv3_1_geni_se/a88000.i2c/i2c-2/2-005f/leds/vibrator_nt/daq_data             u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/ac0000.qcom,qupv3_1_geni_se/a88000.i2c/i2c-2/2-005f/leds/vibrator_nt/brake_en              u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/ac0000.qcom,qupv3_1_geni_se/a88000.i2c/i2c-2/2-005f/leds/vibrator_nt/activate               u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/8c0000.qcom,qupv3_2_geni_se/89c000.i2c/i2c-15/15-005a/leds/vibrator_nt/enalbe           u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/8c0000.qcom,qupv3_2_geni_se/89c000.i2c/i2c-15/15-005a/leds/vibrator_nt/chip_id           u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/8c0000.qcom,qupv3_2_geni_se/89c000.i2c/i2c-15/15-005a/leds/vibrator_nt/f0_save          u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/ac0000.qcom,qupv3_1_geni_se/a88000.i2c/i2c-2/2-005f/leds/vibrator_nt/adc_offset             u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/8c0000.qcom,qupv3_2_geni_se/89c000.i2c/i2c-15/15-005a/leds/vibrator_nt/activate         u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/8c0000.qcom,qupv3_2_geni_se/89c000.i2c/i2c-15/15-005a/leds/vibrator_nt/duration         u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/8c0000.qcom,qupv3_2_geni_se/89c000.i2c/i2c-15/15-005a/leds/vibrator_nt/ram_cali         u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/8c0000.qcom,qupv3_2_geni_se/89c000.i2c/i2c-15/15-005a/leds/vibrator_nt/ram_save         u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/8c0000.qcom,qupv3_2_geni_se/89c000.i2c/i2c-15/15-005a/leds/vibrator_nt/playlist         u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/8c0000.qcom,qupv3_2_geni_se/89c000.i2c/i2c-15/15-005a/leds/vibrator_nt/waveform         u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/ac0000.qcom,qupv3_1_geni_se/a88000.i2c/i2c-2/2-005f/leds/vibrator_nt/stream_data           u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/8c0000.qcom,qupv3_2_geni_se/89c000.i2c/i2c-15/15-005a/leds/vibrator_nt/glb_state u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/ac0000.qcom,qupv3_1_geni_se/a88000.i2c/i2c-2/2-005f/leds/vibrator_nt/daq_duration          u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/ac0000.qcom,qupv3_1_geni_se/a88000.i2c/i2c-2/2-005f/leds/vibrator_nt/stream_start           u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/8c0000.qcom,qupv3_2_geni_se/89c000.i2c/i2c-15/15-005a/leds/vibrator_nt/brightness       u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/8c0000.qcom,qupv3_2_geni_se/89c000.i2c/i2c-15/15-005a/leds/vibrator_nt/auto_brake u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/8c0000.qcom,qupv3_2_geni_se/89c000.i2c/i2c-15/15-005a/leds/vibrator_nt/stream_data      u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/8c0000.qcom,qupv3_2_geni_se/89c000.i2c/i2c-15/15-005a/leds/vibrator_nt/stream_start     u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/8c0000.qcom,qupv3_2_geni_se/89c000.i2c/i2c-15/15-005a/leds/vibrator_nt/sample_param     u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/8c0000.qcom,qupv3_2_geni_se/89c000.i2c/i2c-15/15-005a/leds/vibrator_nt/golden_param     u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/8c0000.qcom,qupv3_2_geni_se/89c000.i2c/i2c-15/15-005a/leds/vibrator_nt/lra_resistance   u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/8c0000.qcom,qupv3_2_geni_se/89c000.i2c/i2c-15/15-005a/leds/vibrator_nt/RT_sample_param_result u:object_r:aac_haptic_device:s0
+/sys/devices/platform/soc/8c0000.qcom,qupv3_2_geni_se/89c000.i2c/i2c-15/15-005a/leds/vibrator_nt/haptic_interface_disable u:object_r:aac_haptic_device:s0
+/dev/ics_sfdc           u:object_r:aac_richtap_dev_device:s0
+/dev/aw86927_haptic                                                                  u:object_r:aac_richtap_dev_device:s0
+/sys/class/leds/vibrator_nt                              u:object_r:aac_haptic_device:s0
+/sys/class/leds/vibrator_nt/f0                           u:object_r:aac_haptic_device:s0
+/sys/class/leds/vibrator_nt/cali                         u:object_r:aac_haptic_device:s0
+/vendor/bin/sfdc_param_calibration                      u:object_r:vendor_sfdc_param_calibration_exec:s0
+/sys/class/leds/vibrator_nt/lra_resistance               u:object_r:aac_haptic_device:s0
+
+# 2026-10-05 C274：原廠移植檔案的標籤 ✓（缺這些 ⇒ HAL 無法執行 ✗）
+/(vendor|system/vendor)/bin/hw/android.hardware.biometrics.face-service.noth		u:object_r:hal_face_default_exec:s0
+/(vendor|system/vendor)/bin/hw/android.hardware.keymaster@4.0-service-qti		u:object_r:vendor_hal_keymaster_qti_exec:s0
+/(vendor|system/vendor)/bin/hw/android.hardware.nfc-service-st		u:object_r:hal_nfc_default_exec:s0
+/(vendor|system/vendor)/bin/hw/diagzn		u:object_r:diagzn_exec:s0
+/(vendor|system/vendor)/bin/hw/vendor.cnce.hardware.facsvc@2.0-service		u:object_r:facsvc_exec:s0
+/(vendor|system/vendor)/bin/hw/vendor.noth.hardware.camera-service		u:object_r:vendor_hal_camera_default_exec:s0
+/(vendor|system/vendor)/bin/hw/vendor.noth.hardware.stability-service		u:object_r:vendor_stability_default_exec:s0
+/(vendor|system/vendor)/bin/hw/vendor.noth.hardware.thermal-service		u:object_r:hal_thermal_default_exec:s0
+/(vendor|system/vendor)/bin/hw/vendor.qti.hardware.lights.service		u:object_r:hal_light_default_exec:s0
+/(vendor|system/vendor)/bin/hw/vendor.qti.hardware.perf2-hal-service		u:object_r:vendor_hal_perf_default_exec:s0
+/(vendor|system/vendor)/bin/hw/vendor.qti.hardware.servicetrackeraidl-service		u:object_r:vendor_hal_srvctracker_default_exec:s0
+/(vendor|system/vendor)/bin/hw/vendor.qti.memory.pasrmanager-service		u:object_r:vendor_pasrmanager_memory_qti_exec:s0

@@ -1,0 +1,42 @@
+# 我方新增（2026-10-01）：修 CACertService 的 zygote abort ✗
+#
+# 症狀：tombstone 反覆出現
+#   JNI FatalError called: (.cacertservice) ... selinux_android_setcontext(...) failed
+#   ⇒ zygote64 SIGABRT ⇒ 程序起不來（start timeout 後被 kill）
+#
+# 真因（實機取證 ✓）：
+#   blob 規則用 `user=oem_2918 seinfo=platform`
+#     vendor/nothing/FroggerPro/etc/selinux/vendor_seapp_contexts
+#   但同一個 vendor 的 sysconfig 把 uid 2918 命名為 android.uid.datacacert
+#     vendor/nothing/FroggerPro/etc/sysconfig/cacert-oem-defined-uids.xml:24
+#       <oem-defined-uid name="android.uid.datacacert" uid="2918"/>
+#   且 vendor_mac_permissions.xml 沒有任何 cacert 條目 ⇒ seinfo 落到 default
+#   ⇒ 實測 dumpsys 顯示 sharedUser=android.uid.datacacert/2918、flags 帶 PRIVILEGED
+#   ⇒ 執行期身分＝user=_app + seinfo 字串 "default:privapp:targetSdkVersion=35:partition=vendor:complete"
+#   ⇒ 上面那條 blob 規則兩個欄位都對不上 ⇒ setcontext 失敗 ✗
+#
+# 修法（v3，2026-10-01 實機取證＋建置取證後定案 ✗→✓）：
+#   ① 病根是 passwd 缺條目（不是規則寫錯）：uid 2918 < AID_APP_START(10000) ⇒
+#      android_seapp.c:842-845 先 seapp_getpwuid(2918)，查不到就 goto err（連規則都不看 ✗）
+#   ② /vendor/etc/passwd 是【fs_config 自動產生】的 ✗ 不能直接改檔：
+#      vendor/nothing/FroggerPro/etc/passwd 根本不是建置輸入（改了完全無效 ✗）
+#      真正來源＝device/nothing/froggerPro/config.fs（BoardConfig.mk:102 TARGET_FS_CONFIG_GEN ✓）
+#      且 fs_config 規定 AID 名【必須帶分區前綴】⇒ 只能產生 vendor_oem_2918
+#      （原廠名字 oem_2918 沒有前綴 ✗ 會被產生器直接拒絕 ✗）
+#   ③ seinfo 比對的是【冒號前那段 base】：實測為 default（不是 privapp ✗）
+#      android_seapp.c:880-882 strcasecmp(info.base, cur->seinfo) ⇒ 必須 seinfo=default ✓
+#   ④ user= 在 uid<10000 時比對 getpwuid 回傳的名字，不是 _app ✗
+#   ⑤ ★ 有 name= 的規則若 seinfo 為空或 "default"，解析器【直接拒絕並中止整份檔案】✗
+#      android_seapp.c:546-552：
+#        if (!cur->isPrivApp && cur->name.str && (!cur->seinfo || !strcmp(cur->seinfo,"default")))
+#            → "No specific seinfo value specified with name=... insecure configuration!" → goto err
+#      ⇒ 症狀會是【全體 No match】✗（連 plat 的 isSystemServer 規則一起失效 ✗）
+#        ⇒ system_server 自己 setcontext 失敗 ⇒ zygote 無限重啟 ⇒ 開機動畫鬼打牆 ✗
+#      ⇒ 這正是 v5 的翻車原因（學到：seapp 改動必須先看解析器條件 ✓）
+#   ⑥ 合法解法二選一 ✓：
+#      (a) 具體 seinfo（如 platform）✓
+#      (b) isPrivApp=true ⇒ 允許 seinfo=default ✓ ← 採用（本 app 確為 PRIVILEGED ✓ 只動本檔 ✓）
+#      本 app 執行期 seinfo 字串＝default:privapp:targetSdkVersion=35:partition=vendor:complete
+#      ⇒ base=default ⇒ 故 (b) 搭配 seinfo=default 才會真正 match ✓
+# 待辦：日後取得原廠 dump 後回頭對齊 provenance（oem_2918 vs datacacert / mac_permissions）
+user=vendor_oem_2918 isPrivApp=true seinfo=default name=.cacertservice domain=vendor_cacertservice_app type=app_data_file levelFrom=all

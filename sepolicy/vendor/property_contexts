@@ -1,0 +1,39 @@
+# 2026-10-06：套用【無衝突版】28 條（來源：~/nphone/live/RESEARCH_PROPERTY_CONTEXTS.md §四）
+# 為何是 28 條 ✓：原廠 204 條中有 179 條與 device/qcom/sepolicy_vndr/sm8750/* 逐字重複 ✗
+#   ⇒ 會讓 host_init_verifier 報 Duplicate prefix match ✗ ⇒ 只保留【其他目錄還沒提供】的 ✓
+# 驗證 ✓：與 host_init_verifier 等價的 trie 比對（1687 條基礎 + 逐條加入）⇒ 衝突 0 ✓
+# 引用 type 的存在性 ✓：vendor_display_prop／vendor_bluetooth_prop／vendor_nfc_prop／
+#   vendor_adsprpc_prop／vendor_exported_finger_prop／vendor_sfdc_prop
+#   ⇒ 前 4 個在預編譯 CIL（vendor/nothing/FroggerPro/etc/selinux/vendor_sepolicy.cil）✓
+#   ⇒ 後 2 個在 froggerpro_targeted.te 已宣告 ✓
+#   ⇒ vendor_face_config_prop 由 froggerpro_face_prop.te 新增宣告 ✓
+# 目標 ✓：讓 persist.vendor.face.type 能設定（face HAL 目前 avc denied set ✗）
+
+persist.vendor.debug.face_aidl         u:object_r:vendor_face_config_prop:s0
+persist.vendor.face.                   u:object_r:vendor_face_config_prop:s0
+vendor.face                            u:object_r:vendor_face_config_prop:s0
+persist.vendor.overlay.fp_model        u:object_r:vendor_exported_finger_prop:s0
+persist.vendor.overlay.fp_algo         u:object_r:vendor_exported_finger_prop:s0
+persist.vendor.goodix.dump_data        u:object_r:vendor_exported_finger_prop:s0
+persist.vendor.noth.dump_data          u:object_r:vendor_exported_finger_prop:s0
+persist.vendor.overlay.fp_vendor       u:object_r:vendor_exported_finger_prop:s0
+ro.vendor.display.array.lux            u:object_r:vendor_display_prop:s0
+ro.vendor.display.array.backlight      u:object_r:vendor_display_prop:s0
+ro.vendor.display.array.hbm.minlux     u:object_r:vendor_display_prop:s0
+ro.vendor.display.array.hbm.maxlux     u:object_r:vendor_display_prop:s0
+ro.vendor.display.array.hbm.backlight  u:object_r:vendor_display_prop:s0
+ro.vendor.display.user.control.lux     u:object_r:vendor_display_prop:s0
+ro.vendor.display.normal.maxbacklight  u:object_r:vendor_display_prop:s0
+ro.vendor.display.normal.minbacklight  u:object_r:vendor_display_prop:s0
+ro.vendor.display.hbm.maxbacklight     u:object_r:vendor_display_prop:s0
+ro.vendor.display.low_brightness_threshold u:object_r:vendor_display_prop:s0
+ro.vendor.display.thermal_limit_brightness u:object_r:vendor_display_prop:s0
+persist.vendor.fastrpc.hwid_version    u:object_r:vendor_adsprpc_prop:s0
+persist.vendor.bluetooth.sar_in        u:object_r:vendor_bluetooth_prop:s0
+persist.vendor.bluetooth.sar_none_in   u:object_r:vendor_bluetooth_prop:s0
+persist.vendor.st_nfc_alwayson_ese     u:object_r:vendor_nfc_prop:s0
+persist.vendor.st_nfc_felica_ese       u:object_r:vendor_nfc_prop:s0
+persist.vendor.st_nfc_felica_fsi       u:object_r:vendor_nfc_prop:s0
+persist.vendor.nfc_cfg.mode_name       u:object_r:vendor_nfc_prop:s0
+persist.vendor.nfc_getcplc_completed   u:object_r:vendor_nfc_prop:s0
+persist.vendor.sfdc                    u:object_r:vendor_sfdc_prop:s0

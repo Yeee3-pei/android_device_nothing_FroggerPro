@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     SPDX-FileCopyrightText: The LineageOS Project
+     SPDX-License-Identifier: Apache-2.0
+-->
+<permissions>
+    <privapp-permissions package="com.froggerpro.privacy">
+        <permission name="android.permission.WRITE_SECURE_SETTINGS" />
+        <permission name="android.permission.WRITE_SETTINGS" />
+        <!-- 廣告框架 AdServices 的 DeviceConfig 開關（見 AndroidManifest.xml 說明 ✓） -->
+        <permission name="android.permission.WRITE_DEVICE_CONFIG" />
+        <permission name="android.permission.READ_DEVICE_CONFIG" />
+    </privapp-permissions>
+</permissions>

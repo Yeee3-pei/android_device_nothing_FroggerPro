@@ -1,0 +1,10 @@
+<!--
+    Input:
+        vendor/noth/hardware/charger/vendor.noth.hardware.charge-service.xml
+-->
+<manifest version="8.0" type="device">
+    <hal format="aidl">
+        <name>vendor.noth.hardware.charge</name>
+        <fqname>ICharge/default</fqname>
+    </hal>
+</manifest>

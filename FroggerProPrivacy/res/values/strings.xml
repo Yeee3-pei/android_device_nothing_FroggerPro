@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     SPDX-FileCopyrightText: The LineageOS Project
+     SPDX-License-Identifier: Apache-2.0
+-->
+<resources>
+    <string name="app_name">FroggerPro 隱私</string>
+
+    <string name="tier_title">隱私等級</string>
+    <string name="tier_summary">一次套用一組開關；下方個別開關可再覆寫</string>
+    <string-array name="tier_entries">
+        <item>最低（維持現狀，不對系統做任何更動）</item>
+        <item>標準（關閉網路輔助定位 AGPS ＋ 停用廣告框架）</item>
+        <item>嚴格（標準 ＋ 關閉網路探測 ＋ 關閉 USB adb）</item>
+        <item>自訂（不自動套用；請手動調整下方開關）</item>
+    </string-array>
+    <string-array name="tier_values">
+        <item>minimal</item>
+        <item>standard</item>
+        <item>strict</item>
+        <item>custom</item>
+    </string-array>
+
+    <string name="captive_portal_title">關閉網路探測（captive portal 檢查）</string>
+    <string name="captive_portal_summary">系統不再自動連線檢查是否被閘道劫持。副作用：公共 Wi‑Fi 的登入頁不會自動彈出，需手動開啟瀏覽器。</string>
+
+    <string name="private_dns_title">私有 DNS（DoT）</string>
+    <string name="private_dns_summary">使用 DNS-over-TLS 主機名。副作用：該主機不可用時 DNS 會失效。</string>
+    <string name="private_dns_host_title">DoT 主機名</string>
+
+    <string name="agps_title">停用網路輔助定位（AGPS／XTRA）</string>
+    <string name="agps_summary">關閉後系統不再下載 Qualcomm XTRA 星曆（不再連 time.xtracloud.net）。僅影響網路輔助，GPS 本體仍可用；緊急電話會強制開啟。驗證：adb shell settings get global assisted_gps_enabled
+次要驗證：adb shell getprop persist.sys.xtra-daemon.enabled</string>
+
+    <string name="adb_title">停用 USB adb</string>
+    <string name="adb_summary">關閉後插上 USB 不再自動開啟 adb 除錯通道（等同開發者選項的 USB 偵錯關）。驗證：adb shell settings get global adb_enabled</string>
+
+    <string name="adservices_title">停用廣告框架（AdServices）</string>
+    <string name="adservices_summary">AOSP 內建 com.android.adservices（Topics／FLEDGE 等廣告 API）。預設即為停用。驗證：adb shell device_config get adservices adservice_enabled
+（false ＝ 已停用）</string>
+
+    <string name="logcatd_title">持久 logcatd（開機落地寫 log）狀態</string>
+    <string name="logcatd_summary">唯讀資訊，非開關。</string>
+
+    <string name="logcatd_note_title">為何 logcatd 只能顯示狀態</string>
+    <string name="logcatd_note_summary">本 App 目前不是 system_app 網域，SELinux 不允許直接寫入 persist.logd.logpersistd。若要能在 App 內切換，需在 device sepolicy 加上：set_prop(system_app, logpersistd_logging_prop)，並讓本 App 以 android.uid.system 執行。此處刻意只顯示狀態，不提供假開關。</string>
+
+    <string name="readonly_cat_title">唯讀（只能建置期變更，不提供假開關）</string>
+    <string name="adb_secure_title">adb 免授權（ro.adb.secure）</string>
+    <string name="adb_secure_summary">ro.* 屬性只能在建置期設定，執行期不可改。目前值請用：adb shell getprop ro.adb.secure（0 ＝ 插 USB 免授權，較不安全）</string>
+    <string name="vendor_title">廠商遙測元件（diagzn／psiclient 等）</string>
+    <string name="vendor_summary">屬 C 類：以 init service 啟動，執行期停止需 root。處理方式為在隱私版建置期移除，不在此提供開關。</string>
+
+    <string name="verify_hint">所有開關皆對應真實系統設定；每項摘要附有可重現的 adb 驗證指令。</string>
+</resources>

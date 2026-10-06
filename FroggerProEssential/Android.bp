@@ -1,0 +1,17 @@
+// FroggerPro Essential —— 仿 Nothing Essential Space，專門對應左側 Essential Key
+// 由 ASSIST intent 喚起（左側鍵 ⇒ key 250 ⇒ ASSIST ✓）
+android_app {
+    name: "FroggerProEssential",
+    srcs: ["src/**/*.java"],
+    manifest: "AndroidManifest.xml",
+    resource_dirs: ["res"],
+    certificate: "platform",
+    privileged: false,
+    platform_apis: true,
+    min_sdk_version: "34",
+    sdk_version: "",  // platform 建置（非 SDK 模式）
+    optimize: {
+        enabled: false,
+    },
+    required: [],
+}

@@ -1,0 +1,45 @@
+// A vendor module that exists only to pull HIDL interface libraries into the vendor image.
+//
+// Why this is needed: these 14 interfaces are declared with `hidl_interface`, and Soong gives such a module two
+// variants - a core one that installs to /system/lib64 and a vendor one that installs to /vendor/lib64. Naming the
+// bare module in PRODUCT_PACKAGES installs the CORE variant (measured: /system/lib64/android.hardware.keymaster@4.1.so
+// exists while the vendor path stayed empty), and the vendor variant is only built and installed when a vendor
+// module depends on it. That is why the other 56 @-suffixed libraries are present in this vendor image: real vendor
+// modules link them.
+//
+// For these 14 the only consumers on the device are prebuilt vendor blobs (bluetooth impl, keymint service,
+// secure element, bluetooth audio), which create no Soong dependency, so their vendor variants were never built and
+// the vendor image went out without them while 21 vendor binaries referenced them.
+//
+// Claiming them as shared_libs from a vendor module makes Soong build and install the vendor variants. Nothing on
+// the device loads this library: it has no consumers; it is a carrier for the dependency and nothing else.
+//
+// A PRODUCT_COPY_FILES rule cannot be used for these paths: the vendor variant's install rule exists regardless of
+// whether it is built, so a copy rule collides with it (overriding commands), and `installable: false` - the
+// property that silences a cc_library - is not accepted by hidl_interface (unrecognized property).
+cc_library_shared {
+    name: "froggerPro_hidl_vendor_deps",
+    vendor: true,
+    srcs: ["hidl_vendor_deps.cpp"],
+    shared_libs: [
+        "android.frameworks.sensorservice@1.0",
+        "android.hardware.bluetooth@1.0",
+        "android.hardware.health@1.0",
+        "android.hardware.health@2.0",
+        "android.hardware.health@2.1",
+        "android.hardware.keymaster@3.0",
+        "android.hardware.keymaster@4.0",
+        "android.hardware.keymaster@4.1",
+        "android.hardware.secure_element@1.0",
+        "android.hardware.secure_element@1.1",
+        "android.hardware.secure_element@1.2",
+        "vendor.qti.hardware.bluetooth_audio@2.0",
+        "vendor.qti.hardware.bluetooth_audio@2.1",
+        "vendor.qti.hardware.display.mapper@2.0",
+    ],
+    // None of the interfaces above is referenced by code in this library; only its dependency edges matter.
+    cflags: [
+        "-Wall",
+        "-Werror",
+    ],
+}

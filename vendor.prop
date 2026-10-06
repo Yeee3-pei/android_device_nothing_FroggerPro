@@ -239,3 +239,153 @@ vendor.wv.oemcrypto.debug.enable_prov40=true
 
 # Wi-Fi
 wifi.aware.interface=wifi-aware0
+
+# === C267 原廠 vendor props 移植（Nothing 旗標 ＋ Glyph ＋ 顯示曲線 ＋ 感測器）===
+# 來源: stock_ota/unpacked/vendor/build.prop ✓（原廠 371 條 ⇒ 我方原缺 133 條 ✓）
+# 用途:
+#   * ro.vendor.glyph.*        ⇒ Glyph 燈效參數（13x13 矩陣／169 通道／亮度曲線 ✓）
+#   * ro.vendor.display.array.* ⇒ 顯示亮度／HDR 曲線 ✓
+#   * ro.vendor.sensor.udlight_sensor.* ⇒ 螢幕下光感測器 ✓
+#   * ro.vendor.nothing.feature.* ⇒ Nothing 功能旗標位元遮罩 ✓
+# 回退: 刪掉本區塊即可 ✓
+
+ro.vendor.nothing.feature.base=0xe24800001004458438124a040106b4247b97ffL
+ro.vendor.nothing.feature.diff.device.Asteroids=0x240001a38fc01acc038d140ad44002d0842080L
+ro.vendor.nothing.feature.diff.device.Frogger=0x2141269afafc0124c028d140ad04002d0842080L
+ro.vendor.nothing.feature.diff.device.FroggerPro=0x2541331afafc2124c028d140ad04002d0842080L
+ro.vendor.nothing.feature.diff.device.Galaga=0x2400050704c890ec02cd3a13f4d02250c42080L
+ro.vendor.nothing.feature.diff.device.Galaxian=0x24200717048090ec02cd3813f4d02258c42080L
+ro.vendor.nothing.feature.diff.device.Metroid=0x2640201afa7621a5c028d100ad44003d1842080L
+ro.vendor.nothing.feature.diff.device.Pacman=0x2400200304400040128d3493f4d00250c42080L
+ro.vendor.nothing.feature.diff.device.PacmanPro=0x2400000304400040128db493f4d00250c42080L
+ro.vendor.nothing.feature.diff.device.Pong=0x60000003044002001aa4144ac04803d1842000L
+ro.vendor.nothing.feature.diff.device.Spacewar=0x24000002040000401aa4142ac041a032c34800L
+ro.vendor.nothing.feature.diff.device.Tetris=0x240004030440818012cf3b13f4d02250c401c0L
+ro.vendor.nothing.feature.diff.plus.Asteroids=0x4000000000000000000000L
+ro.vendor.nothing.feature.diff.product.Asteroids=0x0
+ro.vendor.nothing.feature.diff.product.AsteroidsEEA=0x8000000000000000000000L
+ro.vendor.nothing.feature.diff.product.AsteroidsIND=0x10000000000000000000000L
+ro.vendor.nothing.feature.diff.product.AsteroidsJPN=0x120000000000000000000000L
+ro.vendor.nothing.feature.diff.product.AsteroidsPro=0x100000000000000000000000L
+ro.vendor.nothing.feature.diff.product.AsteroidsProEEA=0x108000000000000000000000L
+ro.vendor.nothing.feature.diff.product.AsteroidsProIND=0x10000000000000000000000L
+ro.vendor.nothing.feature.diff.product.AsteroidsProTUR=0x20100000000000000000000000L
+ro.vendor.nothing.feature.diff.product.AsteroidsTUR=0x20000000000000000000000000L
+ro.vendor.nothing.feature.diff.product.FroggerEEA=0x8000000000000000000000L
+ro.vendor.nothing.feature.diff.product.FroggerIND=0x10000000000000000000000L
+ro.vendor.nothing.feature.diff.product.FroggerJPN=0x120000000000000000000000L
+ro.vendor.nothing.feature.diff.product.FroggerPro=0x100000000000000000000000L
+ro.vendor.nothing.feature.diff.product.FroggerProEEA=0x108000000000000000000000L
+ro.vendor.nothing.feature.diff.product.FroggerProIND=0x10000000000000000000000L
+ro.vendor.nothing.feature.diff.product.FroggerProJPN=0x120000000000000000000000L
+ro.vendor.nothing.feature.diff.product.FroggerProTUR=0x20100000000000000000000000L
+ro.vendor.nothing.feature.diff.product.FroggerTUR=0x20000000000000000000000000L
+ro.vendor.nothing.feature.diff.product.GalagaEEA=0x8000000000000000000000L
+ro.vendor.nothing.feature.diff.product.GalagaIND=0x10000000000000000000000L
+ro.vendor.nothing.feature.diff.product.GalagaJPN=0x120000000000000000000000L
+ro.vendor.nothing.feature.diff.product.GalaxianEEA=0x8000000000000000000000L
+ro.vendor.nothing.feature.diff.product.GalaxianIND=0x10000000000000000000000L
+ro.vendor.nothing.feature.diff.product.GalaxianJPN=0x120000000000000000000000L
+ro.vendor.nothing.feature.diff.product.GalaxianTUR=0x20100000000000000000000000L
+ro.vendor.nothing.feature.diff.product.MetroidEEA=0x8000000000000000000000L
+ro.vendor.nothing.feature.diff.product.MetroidIND=0x10000000000000000000000L
+ro.vendor.nothing.feature.diff.product.MetroidJPN=0x20000000000000000000000L
+ro.vendor.nothing.feature.diff.product.MetroidTUR=0x20000000000000000000000000L
+ro.vendor.nothing.feature.diff.product.PacmanEEA=0x8000000000000000000000L
+ro.vendor.nothing.feature.diff.product.PacmanIND=0x10000000000000000000000L
+ro.vendor.nothing.feature.diff.product.PacmanJPN=0x20000000000000000000000L
+ro.vendor.nothing.feature.diff.product.PacmanProEEA=0x8000000000000000000000L
+ro.vendor.nothing.feature.diff.product.PacmanProIND=0x10000000000000000000000L
+ro.vendor.nothing.feature.diff.product.Pong=0x0
+ro.vendor.nothing.feature.diff.product.PongEEA=0x8000000000000000000000L
+ro.vendor.nothing.feature.diff.product.PongIND=0x10000000000000000000000L
+ro.vendor.nothing.feature.diff.product.Spacewar=0x0
+ro.vendor.nothing.feature.diff.product.SpacewarEEA=0x8000000000000000000000L
+ro.vendor.nothing.feature.diff.product.TetrisEEA=0x8000000000000000000000L
+ro.vendor.nothing.feature.diff.product.TetrisIND=0x10000000000000000000000L
+ro.vendor.nothing.feature.diff.product.TetrisTUR=0x20000000000000000000000000L
+
+# --- 其他原廠 vendor 屬性（顯示曲線／感測器／Glyph 等 ✓）---
+avf.remote_attestation.enabled=false
+debug.egl.hw=0
+debug.mdpcomp.logs=0
+debug.sf.hw=0
+keyguard.no_require_sim=true
+persist.backup.ntpServer=0.pool.ntp.org
+persist.demo.hdmirotationlock=false
+persist.sys.vendor.cnss_diag=stop
+persist.sys.vib_internal=40
+persist.sys.walt.panic_on_bug=0
+persist.sys.zram_enabled=1
+persist.sys.zram_size=75%
+persist.sys.zramwriteback_enable=true
+persist.sys.zramwriteback_first_boot=1
+persist.sys.zramwriteback_size=2147483648
+persist.vendor.debug_policy=minidump
+persist.vendor.debug_policy.ready=1
+persist.vendor.fulldump.nonlimit=0
+persist.vendor.newAAC.cur.config=MUSIC
+persist.vendor.newAAC.dump=0
+persist.vendor.newAAC.enable.value=1.000000
+persist.vendor.newAAC.volume.value=0.000000
+persist.vendor.qcomsysd.enabled=1
+persist.vendor.qfp=true
+persist.vendor.sfdc=true
+persist.vendor.sfdc.ntc=true
+ro.com.android.dataroaming=true
+ro.config.ringtone=01_crossing.ogg
+ro.config.ringtone_sim2=01_crossing.ogg
+ro.control_privapp_permissions=enforce
+ro.vendor.beluga.c=0x4800
+ro.vendor.beluga.p=0x3
+ro.vendor.beluga.s=0x900
+ro.vendor.beluga.t=0x240
+ro.vendor.boot_security_patch=2026-05-05
+ro.vendor.display.array.auto.backlight=1286,1549,2178,3108,3954,4718,5034,5210,5478,5829,6306,6918,7402,7818,8378,8778,9470,10454,10878,11378,13062,14063,14268,14808,15417
+ro.vendor.display.array.auto.lux=0,2,3,5,10,18,30,60,150,250,400,600,800,970,1250,1500,1900,2460,3000,4100,6000,8000,20000,40000,60000
+ro.vendor.display.array.auto.nits=6,8,15,30,50,70,80,86,96,110,132,165,195,220,252,280,330,410,450,500,680,800,900,1200,1590
+ro.vendor.display.array.backlight=1286,1549,2178,3108,3954,4718,5034,5210,5478,5829,6306,6918,7402,7818,8378,8778,9470,10454,10878,11378,13062,14063
+ro.vendor.display.array.hbm.backlight=14063,14268,14808,15417
+ro.vendor.display.array.hbm.maxlux=8000,20000,40000,60000
+ro.vendor.display.array.hbm.minlux=7000,18000,38000,58000
+ro.vendor.display.array.lux=0,2,3,5,10,18,30,60,150,250,400,600,800,970,1250,1500,1900,2460,3000,4100,6000,8000
+ro.vendor.display.array.nits=6,8,15,30,50,70,80,86,96,110,132,165,195,220,252,280,330,410,450,500,680,800
+ro.vendor.display.game_mode.min.backlight=7480
+ro.vendor.display.hbm.maxbacklight=16383
+ro.vendor.display.low_brightness_threshold=0.344
+ro.vendor.display.normal.maxbacklight=14063
+ro.vendor.display.normal.minbacklight=45
+ro.vendor.display.panel.type=Flexible_AMOLED
+ro.vendor.display.safe.backlight=11378
+ro.vendor.display.set_second_timer_ms=3000
+ro.vendor.display.thermal_limit_brightness=15417,14462,14036,13200,11378,10878,10332,9746,9086,8341,7480
+ro.vendor.display.user.control.lux=0,30,300,1000,2500,4500,8000
+ro.vendor.glyph.brightness.cfg=1
+ro.vendor.glyph.brightness.cfg_group=1
+ro.vendor.glyph.brightness.cfg_group_brightness_0=5,10,20,25
+ro.vendor.glyph.brightness.cfg_group_color_0=all
+ro.vendor.glyph.brightness.default_level=2
+ro.vendor.glyph.brightness.uniformization=0
+ro.vendor.glyph.camera.animation.shutter=1
+ro.vendor.glyph.channels=137
+ro.vendor.glyph.column=13
+ro.vendor.glyph.generative.simulation.multiple=4
+ro.vendor.glyph.matrix_channels=169
+ro.vendor.glyph.row=13
+ro.vendor.sensor.udlight_sensor.rect_info=797,859,46,110
+ro.vendor.sensor.udlight_sensor.type=1
+ro.vendor.sensor.udlight_sensor_support=true
+ro.vendor.vm.ssr.enable=false
+ro.virtual_ab.batch_writes=true
+ro.virtual_ab.compression.enabled=true
+ro.virtual_ab.compression.xor.enabled=true
+ro.virtual_ab.enabled=true
+ro.virtual_ab.io_uring.enabled=true
+ro.virtual_ab.userspace.snapshots.enabled=true
+vendor.pasr.activemode.enabled=false
+vendor.power.pasr.enabled=false
+# === 移植區塊結束 ===
+
+# 2026-10-05 C276：原廠顯示／Glyph／zram／音訊校正參數 ✓
+# 來源＝原廠 OTA（STOCK_PROPS_MISSING.json ✓）
+# 排除有風險的 ✗（control_privapp_permissions／virtual_ab／boot_security_patch 等 ✓）

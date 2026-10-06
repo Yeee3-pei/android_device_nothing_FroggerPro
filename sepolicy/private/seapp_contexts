@@ -1,0 +1,32 @@
+# C202：藍牙 com.android.bluetooth 的 seapp_contexts（必須放 system_ext／product ✗ 不可放 vendor ✗）
+# 原因：bluetooth 是 coredomain ✗ ⇒ checkseapp 拒絕 vendor seapp_contexts 指派 coredomain ✗
+# 原文："Forbidden attribute coredomain assigned to domain \"bluetooth\" in vendor seapp_contexts"
+# ⇒ 本檔位於 device/.../sepolicy/private/ ＝ SYSTEM_EXT_PRIVATE_SEPOLICY_DIRS ✓ ⇒ 進 system_ext ✓
+
+# C202（2026-10-03）：藍牙 com.android.bluetooth 的 zygote abort ✗
+#
+# 症狀（實機取證 ✓）：
+#   E SELinux : seapp_context_lookup_internal: No match for app with uid 1002,
+#               seinfo default:privapp:targetSdkVersion=36:partition=system ✗
+#   F zygote64: JNI FatalError called: (com.android.bluetooth) ⇒ SIGABRT ✗
+#   ⇒ 藍牙永遠 OFF ✗（dumpsys bluetooth_manager: state OFF / address null ✗）
+#
+# 真因（三方交叉驗證 ✓）：
+#   ① AOSP 規則 user=bluetooth seinfo=bluetooth domain=bluetooth type=bluetooth_data_file
+#      期待 seinfo=bluetooth ✗
+#   ② 但 plat_mac_permissions.xml 的 bluetooth 條目綁的是
+#      build/make/target/product/security/bluetooth.x509.pem（指紋 a6ccc500… ✗）
+#      而 com.android.bt APEX 實際用
+#      packages/modules/Bluetooth/apex/key/com.android.bt.x509.pem（指紋 40d36325… ✗）
+#      ⇒ 簽章不匹配 ⇒ seinfo 拿不到 bluetooth ⇒ 落到 default ✗
+#   ③ 且該 app 的 partition=system ✗ ⇒ 查的是 plat_mac_permissions ✗
+#      ⇒ 我在 sepolicy/{private,vendor}/mac_permissions.xml 加的簽章（進 system_ext_／vendor_ ✗）
+#        對它【無效】✗（已建置驗證：兩檔都合併成功 ✓ 但對此 app 不生效 ✗）
+#
+# 本檔解法（沿用 C171 對 CACertService 的合法解法 (b) ✓）：
+#   既然實測 seinfo 字串的 base 就是 default ✓
+#   ⇒ 直接寫一條【不帶 name=】的規則用 seinfo=default ✓
+#   ⚠️ 必須【無 name=】✗：android_seapp.c:546 規定有 name= 且 seinfo 空/default
+#      ⇒ 解析器拒絕整份檔案 ⇒ 全體 No match ⇒ 開機鬼打牆 ✗
+#   user= 比對 getpwuid(1002) 的名字 ⇒ 就是 bluetooth ✓
+user=bluetooth isPrivApp=true seinfo=default domain=bluetooth type=bluetooth_data_file levelFrom=all

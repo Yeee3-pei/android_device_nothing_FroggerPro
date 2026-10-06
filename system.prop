@@ -1,0 +1,40 @@
+# Debugging defaults that have to live in the system partition.
+#
+# PRODUCT_PROPERTY_OVERRIDES in device.mk lands in the vendor partition, which is not the one that is
+# replaced when debugging a boot loop against a different vendor image, so the properties are declared here
+# instead: everything under system/ ships from the framework partitions we build.
+#
+# USB debugging is off by default on a freshly wiped device, which makes the shell and logcat unreachable
+# exactly when a boot loop needs to be diagnosed. Keeping a persistent logd buffer means the log of a boot
+# that never finishes can still be pulled afterwards.
+persist.sys.usb.config=adb,mtp
+persist.logd.logpersistd=logcatd
+
+# Dalvik/ART heap sizes.
+#
+# The vendor init script (init/init.target.rc in the device tree, shipped in the vendor partition) only sets
+# dalvik.vm.heapgrowthlimit from "on property:vendor.display.lcd_density=560" or "=640". This device reports
+# 480, so neither rule fires, the growth limit stays unset, and ART falls back to its built-in 16 MB default.
+# system_server then dies with java.lang.OutOfMemoryError while starting ("Failed to allocate a 24 byte
+# allocation ... target footprint 16777216, growth limit 16777216"), zygote respawns it, and the device sits in
+# the boot animation forever. Declaring the heap values here removes the dependency on the density property;
+# 256m is the value the vendor script itself uses for the 560 profile.
+dalvik.vm.heapstartsize=16m
+dalvik.vm.heapgrowthlimit=256m
+dalvik.vm.heapsize=512m
+dalvik.vm.heaptargetutilization=0.75
+dalvik.vm.heapminfree=512k
+dalvik.vm.heapmaxfree=8m
+
+
+
+# Camcorder frame rates (60 fps recording).
+#
+# MediaProfiles builds the XML file name as "media_profiles" + the value of ro.media.xml_variant.profiles
+# (see frameworks/av/media/libmedia/MediaProfiles.cpp getXmlPaths(), which defaults the variant to "_V1_0").
+# It then searches product/etc, odm/etc, vendor/etc and finally system/etc for that name, falling back to
+# system/etc/media_profiles.xml. This device ships /vendor/etc/media_profiles.xml (no 60 fps entries) and
+# /vendor/etc/media_profiles_kera_v1.xml (12 entries at 4K/3840x2160 @ 60 fps, incl. timelapse), but neither
+# file matches the default "_V1_0" name, so MediaProfiles silently loads the AOSP fallback and 60 fps is not
+# offered. Selecting the vendor's own file by its actual suffix enables it.
+ro.media.xml_variant.profiles=_kera_v1

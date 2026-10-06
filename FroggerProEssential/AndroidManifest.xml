@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FroggerPro Essential —— 對應左側 Essential Key（key 250 ⇒ ASSIST ✓） -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.froggerpro.essential">
+
+    <uses-sdk android:minSdkVersion="34" android:targetSdkVersion="36" />
+
+    <application
+        android:label="Essential Space"
+        android:allowBackup="false"
+        android:supportsRtl="true">
+
+        <activity
+            android:name=".EssentialActivity"
+            android:exported="true"
+            android:excludeFromRecents="false"
+            android:launchMode="singleTop"
+            android:theme="@android:style/Theme.DeviceDefault.DayNight">
+
+            <!-- 左側鍵（ASSIST）喚起 ⇒ 成為預設助理 ✓ -->
+            <intent-filter android:priority="100">
+                <action android:name="android.intent.action.ASSIST" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+
+            <!-- 也可從桌面／抽屜直接開啟 ✓ -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

@@ -1,0 +1,10 @@
+<!--
+    Input:
+        hardware/lineage/interfaces/livedisplay/aidl/sdm/vendor.lineage.livedisplay-service.sdm-pa.xml
+-->
+<manifest version="9.0" type="device">
+    <hal format="aidl">
+        <name>vendor.lineage.livedisplay</name>
+        <fqname>IPictureAdjustment/default</fqname>
+    </hal>
+</manifest>

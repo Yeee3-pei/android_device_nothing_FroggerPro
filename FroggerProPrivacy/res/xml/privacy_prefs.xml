@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     SPDX-FileCopyrightText: The LineageOS Project
+     SPDX-License-Identifier: Apache-2.0
+
+     每個開關都對應真實系統設定，並在摘要中附上【可重現的驗證指令】✓
+     尚未實作／無法切換的項目只以說明列出，不給假開關 ✗
+-->
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory android:title="@string/tier_title">
+
+        <ListPreference
+            android:key="tier"
+            android:title="@string/tier_title"
+            android:summary="@string/tier_summary"
+            android:entries="@array/tier_entries"
+            android:entryValues="@array/tier_values"
+            android:persistent="false" />
+
+        <Preference
+            android:title="@string/verify_hint"
+            android:summary="@string/verify_hint" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="網路／定位">
+
+        <SwitchPreference
+            android:key="agps_off"
+            android:title="@string/agps_title"
+            android:summary="@string/agps_summary"
+            android:persistent="false" />
+
+        <SwitchPreference
+            android:key="adb_off"
+            android:title="@string/adb_title"
+            android:summary="@string/adb_summary"
+            android:persistent="false" />
+
+        <SwitchPreference
+            android:key="captive_portal_off"
+            android:title="@string/captive_portal_title"
+            android:summary="@string/captive_portal_summary"
+            android:persistent="false" />
+
+        <SwitchPreference
+            android:key="private_dns_on"
+            android:title="@string/private_dns_title"
+            android:summary="@string/private_dns_summary"
+            android:persistent="false" />
+
+        <EditTextPreference
+            android:key="private_dns_host"
+            android:title="@string/private_dns_host_title"
+            android:dialogTitle="@string/private_dns_host_title"
+            android:persistent="false" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="廣告框架">
+
+        <SwitchPreference
+            android:key="adservices_off"
+            android:title="@string/adservices_title"
+            android:summary="@string/adservices_summary"
+            android:persistent="false" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="紀錄">
+
+        <Preference
+            android:key="logcatd_status"
+            android:title="@string/logcatd_title"
+            android:summary="@string/logcatd_summary"
+            android:persistent="false" />
+
+        <Preference
+            android:title="@string/logcatd_note_title"
+            android:summary="@string/logcatd_note_summary" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/readonly_cat_title">
+
+        <Preference
+            android:title="@string/adb_secure_title"
+            android:summary="@string/adb_secure_summary" />
+
+        <Preference
+            android:title="@string/vendor_title"
+            android:summary="@string/vendor_summary" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

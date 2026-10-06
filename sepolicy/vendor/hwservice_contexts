@@ -1,0 +1,5 @@
+# 2026-10-05：原廠 hwservice_contexts 移植【撤回】✗
+# 原因 ✓：neverallow 違規（AOSP 硬性禁止）
+#   neverallow domain base_typeattr_778 (hwservice_manager (add find))
+#   from system/sepolicy/private/hwservice.te:10 ✗
+# ⇒ 備份 ✓：hwservice_contexts.bak_ported_keep

@@ -1,0 +1,9 @@
+# 我方 vendor 的 Adreno 驅動（SF 由 /vendor 載入）會向 QSPM 查 app-profile。
+# EvoX vendor 策略只允許 vendor_hal_qspmhal_client / vendor_hal_qspmhal_server /
+# hal_camera_default 查詢該服務（見 vendor_sepolicy.cil）⇒ surfaceflinger 被拒
+# ⇒ 驅動回退通用 GPU profile（SurfaceFlinger 印 renderer : Adreno (TM) 4XX）
+# ⇒ GL ES 3.0 ⇒ Skia「no supported rendering path」⇒ SurfaceFlinger SIGABRT ⇒ 灰畫面。
+#
+# 依既有慣例（同 device/nothing/froggerPro/sepolicy/vendor/hal_camera_default.te）：
+hal_client_domain(surfaceflinger, vendor_hal_qspmhal)
+allow surfaceflinger vendor_hal_qspmhal_service:service_manager find;

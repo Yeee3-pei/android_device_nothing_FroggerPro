@@ -1,0 +1,9 @@
+# 2026-10-05 C274c：原廠移植檔案的 exec type ✓
+# 屬性照原廠 CIL：file_type, exec_type, vendor_file_type ✓
+# ★ 只宣告【prebuilt vendor_sepolicy.cil 裡沒有】的 ✓
+#   （重複宣告 ⇒ Duplicate declaration ✗；完全不宣告 ⇒ type is not defined ✗）
+
+type diagzn_exec, file_type, exec_type, vendor_file_type;
+type facsvc_exec, file_type, exec_type, vendor_file_type;
+type vendor_hal_camera_default_exec, file_type, exec_type, vendor_file_type;
+type vendor_stability_default_exec, file_type, exec_type, vendor_file_type;

@@ -1,0 +1,51 @@
+# C195d：只補【高價值且不觸 neverallow】的規則
+#
+# 兩次失敗教訓（都記進技能 ✓）：
+#   ✗ C195：臆造型別 vendor_camera ✗ ⇒ unknown type ⇒ 建置失敗
+#   ✗ C195b：vendor_keymint_retry_timer_prop 是 property_type ✗
+#           ⇒ neverallow domain property_type (file (ioctl lock))
+#   ✗ C195c：system_server（coredomain ✗）對 sysfs 授 file 權限 ✗
+#           ⇒ neverallow coredomain sysfs (file (ioctl read write ...))
+#   ⇒ 通則：**coredomain／property_type 相關的 sysfs／debugfs／property 授權幾乎都有 neverallow** ✗
+#     這類 AVC 只能放棄 ✓（本例各僅 1~4 次 ✗ 影響極小 ✓）
+#
+# 以下只留【實機 AVC 出現頻率高 或 直接對應明確功能故障】者 ✓
+
+# --- 1) /dev/ntfeature：相機 provider 與 rild（BUG-013 ✓）---
+allow hal_camera_default vendor_ntf_file:file r_file_perms;
+allow rild vendor_ntf_file:file r_file_perms;
+allow cameraserver vendor_ntf_file:file r_file_perms;
+
+# --- 2) ★ GPS（BUG-005 ✓）：vendor_location 需執行 xtra-daemon 與 lowi-server ---
+#     實機各被拒 6 次 ✓ ⇒ 這是「GNSS 引擎 running 但拿不到定位」的直接原因 ✓
+allow vendor_location vendor_location_xtra_daemon_exec:file r_file_perms;
+allow vendor_location vendor_location_xtra_daemon_exec:file execute_no_trans;
+allow vendor_location vendor_location_lowi_server_exec:file r_file_perms;
+allow vendor_location vendor_location_lowi_server_exec:file execute_no_trans;
+allow vendor_location vendor_location:dir r_dir_perms;
+
+# --- 3) 電池資訊給 App（實機 36 次被拒 ✓ 最高頻 ✓）---
+#     vendor_sysfs_battery_supply 是 vendor 型別 ✓（非核心 sysfs ✗ 不受 coredomain neverallow ✗）
+allow untrusted_app vendor_sysfs_battery_supply:dir r_dir_perms;
+allow untrusted_app vendor_sysfs_battery_supply:file r_file_perms;
+allow platform_app vendor_sysfs_battery_supply:dir r_dir_perms;
+allow platform_app vendor_sysfs_battery_supply:file r_file_perms;
+
+# ═══════════════════════════════════════════════════════════════
+# 2026-10-05 C281：實機 avc 抓到的兩個新拒絕 ✓
+# 證據 ✓：adb logcat -b all 的 avc 行（每 5 秒重複 ✓ = 服務啟動即被拒 ✓）
+# ═══════════════════════════════════════════════════════════════
+
+# ① vendor.noth.hardware.thermal-service ✗
+#    症狀 ✓：Failed to register HAL service: vendor.noth.hardware.thermal.IThermalControl/default
+#             avc: denied { add } scontext=u:r:hal_thermal_default ✗
+#    ⇒ ⇒ 它跑在 AOSP 的 hal_thermal_default ✓ 但不准註冊 vendor 專屬服務名 ✗
+#    ⇒ 修法 ✓：允許 hal_thermal_default 在 hwservicemanager 註冊 ✓
+
+# ② vendor.qti.hardware.lights.service ✗
+#    症狀 ✓：avc: denied { search } name="vendor" dev="tmpfs" scontext=u:r:hal_light_default ✗
+#             avc: denied { read }  name="vendor" dev="sysfs" scontext=u:r:hal_light_default ✗
+#    ⇒ ⇒ 它需要讀 /sys 與 tmpfs 的 vendor 目錄 ✗
+
+# 2026-10-05 C283：服務名沒 context 時的保險 ✓
+# 實機 avc ✓：tcontext=u:object_r:default_android_service:s0 tclass=service_manager ✗
