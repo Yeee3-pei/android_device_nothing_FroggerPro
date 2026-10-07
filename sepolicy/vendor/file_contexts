@@ -7,7 +7,6 @@
 /data/per_boot(/.*)?    u:object_r:per_boot_file:s0
 
 # Glyph matrix LED device
-/dev/matrix-leds    u:object_r:glyph_matrix_device:s0
 
 # C201：補齊 blob file_contexts 缺的三條（原廠有 ✓ 我方漏 ✗）
 #   真因：缺這三條 ⇒ 三個 HAL 落到通用 u:object_r:vendor_file:s0 ✗
