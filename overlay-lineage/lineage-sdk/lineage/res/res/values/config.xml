@@ -39,4 +39,25 @@
          For example, a device with Home, Back and Menu keys would set this
          config to 7. -->
     <integer name="config_deviceHardwareWakeKeys">72</integer>
+
+    <!-- This device has no hardware button/keyboard backlight.
+         LineageOS' lineage-sdk default for both is 1.0 (full brightness), so
+         PowerManagerService.updateSettingsLocked() ends up with mButtonBrightness = 1.0
+         and, on every screen-on, pushes a BUTTONS light request
+         (frameworks/base .../power/PowerManagerService.java: mButtonsLight.setBrightness()).
+
+         The stock QTI lights HAL on this device maps that BUTTONS request onto the
+         3-channel RGB LED (/sys/class/leds/{red,green,blue}, PMIC pmxr2230 led-controller).
+         Result: the RGB LED lit up full white (red=green=blue=255) every time the screen
+         was turned on, and it stayed lit - "the Glyph red LED turns itself on when the
+         screen comes on". Confirmed in the HAL log:
+             D/vendor.qti.lights: colorRGB = FFFFFFFF, mode = 0, onMs = 0, offMs = 0, rc: 0
+         exactly at screen-on, and colorRGB = FF000000 at screen-off, matching
+         `dumpsys lights` Light id=2 (LightType.BUTTONS) toggling ffffffff <-> ff000000.
+
+         Keeping both defaults at 0 means the brightness is not valid
+         (isValidButtonBrightness() requires value > BRIGHTNESS_MIN), so no buttons light
+         request is made and the RGB LED stays off. -->
+    <dimen name="config_buttonBrightnessSettingDefaultFloat">0.0</dimen>
+    <dimen name="config_keyboardBrightnessSettingDefaultFloat">0.0</dimen>
 </resources>
