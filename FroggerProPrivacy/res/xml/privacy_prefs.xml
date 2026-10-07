@@ -5,6 +5,7 @@
 
      每個開關都對應真實系統設定，並在摘要中附上【可重現的驗證指令】✓
      尚未實作／無法切換的項目只以說明列出，不給假開關 ✗
+     目錄來源：~/nphone/live/PRIVACY_FULL_CATALOG.md
 -->
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
@@ -24,7 +25,20 @@
 
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="網路／定位">
+    <!-- B 類：B3 的入口 —— 把使用者送到【系統自己的】隱私儀表板 ✓
+         理由：自造 per-app 清單會落後 AOSP 改版 ✗ 平台 UI 才是真相來源 ✓
+         title/summary 用字面值 ⇒ 不必動 strings.xml ✓ 減少出錯面 ✓ -->
+    <PreferenceCategory android:title="隱私儀表板（B 類）">
+
+        <Preference
+            android:key="privacy_dashboard"
+            android:title="開啟系統隱私儀表板"
+            android:summary="檢視／調整每個 App 的相機、麥克風、定位權限（交由平台 UI 處理 ✓）"
+            android:persistent="false" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/cat_network">
 
         <SwitchPreference
             android:key="agps_off"
@@ -56,9 +70,67 @@
             android:dialogTitle="@string/private_dns_host_title"
             android:persistent="false" />
 
+        <EditTextPreference
+            android:key="ntp_server"
+            android:title="@string/ntp_title"
+            android:dialogTitle="@string/ntp_title"
+            android:persistent="false" />
+
+        <SwitchPreference
+            android:key="auto_time_off"
+            android:title="@string/auto_time_title"
+            android:summary="@string/auto_time_summary"
+            android:persistent="false" />
+
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="廣告框架">
+    <PreferenceCategory android:title="@string/cat_location">
+
+        <SwitchPreference
+            android:key="location_device_only"
+            android:title="@string/location_title"
+            android:summary="@string/location_summary"
+            android:persistent="false" />
+
+        <SwitchPreference
+            android:key="wifi_scan_off"
+            android:title="@string/wifi_scan_title"
+            android:summary="@string/wifi_scan_summary"
+            android:persistent="false" />
+
+        <SwitchPreference
+            android:key="ble_scan_off"
+            android:title="@string/ble_scan_title"
+            android:summary="@string/ble_scan_summary"
+            android:persistent="false" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/cat_sensors">
+
+        <SwitchPreference
+            android:key="sensor_privacy_on"
+            android:title="@string/sensor_privacy_title"
+            android:summary="@string/sensor_privacy_summary"
+            android:persistent="false" />
+
+        <Preference
+            android:title="@string/sensor_privacy_note_title"
+            android:summary="@string/sensor_privacy_note_summary" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/cat_radio">
+
+        <SwitchPreference
+            android:key="nfc_off"
+            android:title="@string/nfc_title"
+            android:summary="@string/nfc_summary"
+            android:persistent="false" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/cat_ads">
 
         <SwitchPreference
             android:key="adservices_off"
@@ -68,7 +140,7 @@
 
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="紀錄">
+    <PreferenceCategory android:title="@string/cat_logs">
 
         <Preference
             android:key="logcatd_status"
@@ -91,6 +163,22 @@
         <Preference
             android:title="@string/vendor_title"
             android:summary="@string/vendor_summary" />
+
+        <Preference
+            android:title="@string/kernel_title"
+            android:summary="@string/kernel_summary" />
+
+        <Preference
+            android:title="@string/updater_title"
+            android:summary="@string/updater_summary" />
+
+        <Preference
+            android:title="@string/mac_title"
+            android:summary="@string/mac_summary" />
+
+        <Preference
+            android:title="@string/widevine_title"
+            android:summary="@string/widevine_summary" />
 
     </PreferenceCategory>
 
