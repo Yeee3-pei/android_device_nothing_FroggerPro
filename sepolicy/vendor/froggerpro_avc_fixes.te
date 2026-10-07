@@ -18,3 +18,86 @@ allow vendor_location vndbinder_device:chr_file { read open getattr };
 #   影響：充電 HAL 讀不到 USB 線材型別 ⇒ 充電判斷／顯示可能不正確 ✗
 #   註：proc 是泛用型別 ⇒ 這條是廣域讀取允許 ✓（與平台既有寫法一致 ✓）
 allow hal_nt_charger proc:file { read open getattr };
+
+
+# ============================================================================
+# 追加到 device/nothing/froggerPro/sepolicy/vendor/froggerpro_avc_fixes.te
+# （★等 rom-privacy-inc2 建置結束後才 append ✗ 建置中不改樹 ✗★）
+#
+# 來源：2026-10-08 01:5x privacy 版／slot _b 的 dmesg 實測 ✓
+# 原則：沿用該檔既有慣例 —— 只用已存在型別 ✓ 每條附 avc 原文 ✓ 一條一問題 ✓
+# ============================================================================
+
+# ── 3) vendor_location 的自我 netlink 通訊被拒 ──────────────────────────────
+#   avc: denied { create } for comm="loc-mq-thread"
+#     scontext=u:r:vendor_location:s0 tcontext=u:r:vendor_location:s0
+#     tclass=netlink_route_socket permissive=0
+#   影響：定位服務的 MQ 執行緒無法建立 route socket ⇒ 位置資訊取得受限 ✗
+#   ★這是比先前懷疑的 vndbinder 更可能的定位問題真因 ✓★
+#   （先前 #1 的 vndbinder 允許仍在 ✓ 兩者不衝突 ✓）
+allow vendor_location self:netlink_route_socket { create bind read write getattr };
+
+# ── 4) 觸控指紋 HAL 讀未分類屬性被拒 ────────────────────────────────────────
+#   avc: denied { read } for name="u:object_r:default_prop:s0" dev="tmpfs"
+#     scontext=u:r:hal_fingerprint_default:s0 tcontext=u:object_r:default_prop:s0 tclass=file
+#   影響：指紋 HAL 每次啟動／重試都新增一條 AVC ✗（FOD 初始化可能受影響 ✓）
+#   註：default_prop 是【未分類屬性】的落點 ⇒ 此允許屬廣域讀取 ✓
+#       與本檔 #2（hal_nt_charger 讀 proc）採同一尺度 ✓（唯讀 ✓ 不含 write ✗）
+# ★※本條【已實驗證明不可行】※★（2026-10-08 02:07 實測 ✗）
+#   原本寫法：allow hal_fingerprint_default default_prop:file { read open getattr };
+#   ⇒ 建置被 neverallow 擋死 ✗：
+#        neverallow on line 164 of system/sepolicy/private/property.te
+#        neverallow on line 272 of system/sepolicy/public/property.te
+#        libsepol.check_assertions: 2 neverallow failures occurred
+#        證據鏈：vendor_sepolicy.cil:29223 ← froggerpro_avc_fixes.te:46 ⇒ checkpolicy FAILED
+#   ⇒ ★neverallow 明文禁止 HAL 讀【泛用 default_prop】✗ 這是刻意的安全設計 ✓ 不可繞 ✗★
+#
+#   真因（已查明 ✓）：指紋 HAL 讀的是【未分類的】ro.system_dlkm.build.* 屬性
+#     實測 default_prop 區內容：ro.system_dlkm.build.fingerprint／date／date.utc／id／
+#       tags／type／version.incremental／version.release／version.sdk …
+#     實機原 AVC：
+#       avc: denied { read } for name="u:object_r:default_prop:s0" dev="tmpfs" ino=185
+#         scontext=u:r:hal_fingerprint_default:s0 tcontext=u:object_r:default_prop:s0 tclass=file
+#
+#   影響評估：★良性 ✗★ —— 被拒的只是【建置資訊的讀取】✗
+#     實測指紋 HAL 正常 running ✓（init.svc.vendor.fingerprint-nothing = running ✓ pid 2128 ✓）
+#     FOD 功能未見異常 ✓
+#   ⇒ 決策：★不修 ✗★（放寬泛型 default_prop = 廢掉 SELinux 對未分類屬性的保護 ✗ 得不償失 ✓）
+#     若日後真要修 ✓ 正確做法是在【property_contexts】給 ro.system_dlkm. 專屬標籤 ✗
+#     並在該專屬型別上開讀取 ✓ —— 而不是 allow default_prop ✗
+
+# ── 5) ★vendor_init 載入我方 vendor.prop 時被拒 ⇒ 內容沒生效 ✗★ ─────────────
+#   出處（我方自己的檔案 ✓）：
+#     device/nothing/froggerPro/vendor.prop:52  persist.vendor.bt.a2dp_offload_cap
+#     device/nothing/froggerPro/vendor.prop:71  persist.vendor.data.qms.stx_disable
+#     device/nothing/froggerPro/vendor.prop:210 persist.vendor.ssr.restart_level
+#     device/nothing/froggerPro/init/init.qcom.rc:500  on property:persist.vendor.ssr.restart_level=*
+#   實機原文：
+#     avc: denied { set } for property=persist.vendor.bt.a2dp_offload_cap
+#       scontext=u:r:vendor_init:s0 tcontext=u:object_r:vendor_bluetooth_prop:s0
+#     （同型另有 vendor_qms_prop／vendor_ssr_prop／config_prop／
+#       logpersistd_logging_prop／build_prop，見下方「刻意不修」）
+#   影響：★SSR 重啟策略（ALL_ENABLE）／QMS 節流／BT A2DP 編碼能力★
+#         目前全部【沒有真的設進去】✗ ⇒ 行為與原廠不同 ✗
+#   型別依據：device/qcom/sepolicy_vndr/legacy-um/qva/vendor/common/property_contexts:35
+#             persist.vendor.bt.a2dp_offload_cap → u:object_r:vendor_bluetooth_prop:s0
+#   ⚠️ 注意：是 vendor_bluetooth_prop ✗ 不是 bluetooth_prop ✗（後者是 plat 型別 ✓）
+set_prop(vendor_init, vendor_bluetooth_prop)
+set_prop(vendor_init, vendor_qms_prop)
+set_prop(vendor_init, vendor_ssr_prop)
+
+# ── ★刻意【不修】的拒絕（都是【正確】的拒絕 ✗ 動了會降安全 ✗）──────────────
+#   6) avc: denied { set } property=ro.adb.secure  scontext=vendor_init
+#      ⇒ ★vendor 不該能改 adb 安全屬性 ✗ 這個拒絕是對的 ✓★（絕不解 ✗）
+#   7) avc: denied { set } property=persist.logd.logpersistd scontext=vendor_init
+#      ⇒ log 持久化屬 plat 屬性 ✓ 由 system_app／shell 管 ✓ vendor 不該設 ✗
+#        （App 只需【讀】✓ 已於 sepolicy/private/froggerpro_privacy.te 處理 ✓）
+#   8) avc: denied { set } property=ro.config.ringtone_sim2 → config_prop
+#      ⇒ plat 設定屬性 ✓ 由 plat 端設 ✓ vendor 不該寫 ✗
+#   9) avc: denied { read } property=system.face.DumpPath scontext=vendor_init
+#      ⇒ 屬 face 專用屬性 ✓ 已有 froggerpro_face_prop.te ✓ 若真需要另行處理 ✗
+#  10) system_server 讀 /sys/kernel/irq/*/name（★幾百個 IRQ 名 ✗★）
+#      ⇒ ★良性噪音 ✗ 讀 IRQ 名字不影響功能 ✓
+#        ★絕不可為此放寬 sysfs 泛型 ✗（那等於廢掉 SELinux 的 sysfs 保護 ✗）★
+#  11) permissioncontroller_app 探測 vendor.qti.qspmhal 服務 ＋ search system_data_file
+#      ⇒ 認證控制器列舉服務時的可容忍失敗 ✓ 屬噪音 ✗

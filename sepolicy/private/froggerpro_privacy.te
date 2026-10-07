@@ -1,0 +1,25 @@
+# froggerpro_privacy.te —— FroggerProPrivacy（platform_app 網域）所需的最小權限
+#
+# 撰寫原則（沿用同目錄外 froggerpro_avc_fixes.te 的既有慣例 ✓）：
+#   1. 只用【政策中已存在】的型別 ✓ 不發明新名字 ✗
+#   2. 每一條都附【實機 avc 原文】✓ 可回溯 ✓
+#   3. 一條只解決一個問題 ✗ 不順手放大權限 ✗
+#
+# 這個檔案位於 sepolicy/private ✓ 由 BoardConfig.mk:307 掛為
+#   SYSTEM_EXT_PRIVATE_SEPOLICY_DIRS ⇒ 屬【platform 政策】✓
+#   （platform_app 是 plat 網域 ⇒ 規則必須放這裡 ✓ 放 vendor 編不過 ✗）
+
+# ── 1) 讀 logcatd 持久化狀態（App 用來顯示「目前是否在持久化 log」）──────
+#   實機原文（2026-10-08 01:48，privacy 版／slot _b／刷機後實測 ✓）：
+#     avc: denied { read } for comm="ggerpro.privacy"
+#       name="u:object_r:logpersistd_logging_prop:s0" dev="tmpfs" ino=185
+#       scontext=u:r:platform_app:s0 tcontext=u:object_r:logpersistd_logging_prop:s0
+#       tclass=file permissive=0
+#   影響：① App 的「logcatd 狀態」永遠只顯示「（讀不到）」✗
+#         ② 每次 syncFromSystem 都新增一條 AVC ⇒ dmesg 噪音 ✗（實測 5 條／開機後 10 分鐘 ✓）
+#   依據：AOSP 的 system/sepolicy/private/platform_app.te 已有 6 條同型規則
+#         （audio_config_prop／radio_cdma_ecm_prop／keyguard_config_prop／
+#           qemu_hw_prop／last_boot_reason_prop／bluetooth_lea_prop ✓）
+#         ⇒ 以完全相同的方式書寫 ✓ 不新增型別 ✓ 不放寬到 set_prop ✗（App 只需讀 ✓）
+#   註：屬性本身是唯讀型別 ⇒ 此允許僅能讀取 ✓ 無法藉此改動系統行為 ✓
+get_prop(platform_app, logpersistd_logging_prop)
