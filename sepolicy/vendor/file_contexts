@@ -97,3 +97,26 @@
 /(vendor|system/vendor)/bin/hw/vendor.qti.hardware.perf2-hal-service		u:object_r:vendor_hal_perf_default_exec:s0
 /(vendor|system/vendor)/bin/hw/vendor.qti.hardware.servicetrackeraidl-service		u:object_r:vendor_hal_srvctracker_default_exec:s0
 /(vendor|system/vendor)/bin/hw/vendor.qti.memory.pasrmanager-service		u:object_r:vendor_pasrmanager_memory_qti_exec:s0
+
+# === C318 contexts 第一批（15 條 ✓）=========================================
+# 篩選法：label 的 type 必須【出現在編譯後的 policy 二進位內】（strings 全行比對 ✓）
+#   ✗ 舊法（掃 .te/.cil 宣告）太寬鬆 ✗ 會把未編進 policy 的宣告誤判成「已有」✗
+#     實例：vendor_leds_file / led_device / sysfs_leds_info 曾被誤判 ✓ 實際不在 policy ✗
+# 依據：實機 dmesg AVC（tclass=dir 22 條 / tclass=file 19 條 ✓ 被拒 name 最多者＝"leds" ✓）
+# 原則：append-only ✓ 一批一檔 ✓ 每批 ≤20（本批 15 ✓）✓ 不引入新 type ⇒ 不碰 neverallow ✓
+# 來源：原廠 /vendor/etc/selinux/vendor_file_contexts ✓
+/sys/class/leds                                       u:object_r:vendor_sysfs_graphics:s0
+/sys/class/leds/aw_vibrator                           u:object_r:vendor_sysfs_graphics:s0
+/sys/class/leds/aw_vibrator/cali                      u:object_r:vendor_sysfs_graphics:s0
+/sys/class/leds/aw_vibrator/f0                        u:object_r:vendor_sysfs_graphics:s0
+/sys/class/leds/aw_vibrator/lra_resistance            u:object_r:vendor_sysfs_graphics:s0
+/sys/class/leds/wled/secure_mode                      u:object_r:vendor_sysfs_graphics:s0
+/sys/devices(/platform)?/soc/[a-f0-9]+\.qcom,mdss_mdp/[a-f0-9]+\.qcom,mdss_mdp:qcom,mdss_fb_primary/leds/lcd-backlight(/.*)?  u:object_r:vendor_sysfs_graphics:s0
+/sys/devices/soc\.0/[a-f0-9]+\.qcom,mdss_mdp/qcom,mdss_fb_primary.+[a-f0-9]/leds/lcd-backlight(/.*)?  u:object_r:vendor_sysfs_graphics:s0
+/dev/mem_buf_vm/qcom,cp_touch                         u:object_r:vendor_vm_cp_touch_device:s0
+/data/vendor/battery_stats(/.*)?                      u:object_r:vendor_battery_stats_data_file:s0
+/dev/qg_battery                                       u:object_r:vendor_qg_device:s0
+/vendor/bin/battery_stats                             u:object_r:vendor_battery_stats_exec:s0
+/(vendor|system/vendor)/bin/hw/android\.hardware\.vibrator-service\.example  u:object_r:hal_vibrator_default_exec:s0
+/(vendor|system/vendor)/bin/hw/android\.hardware\.vibrator@1\.0-service      u:object_r:hal_vibrator_default_exec:s0
+/vendor/bin/hw/android\.hardware\.vibrator@1\.1-service\.crosshatch          u:object_r:hal_vibrator_default_exec:s0
