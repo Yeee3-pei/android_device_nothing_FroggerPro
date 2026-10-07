@@ -91,10 +91,27 @@ public class PrivacySettingsActivity extends PreferenceActivity {
 
     /** 持久 logcatd 屬性（唯讀顯示用） */
     private static final String PROP_LOGPERSISTD = "persist.logd.logpersistd";
-    private static final String PROP_XTRA = "persist.sys.xtra-daemon.enabled";
+    // ★已移除 PROP_XTRA（persist.sys.xtra-daemon.enabled）★
+    //   原因：platform_app 網域無權讀該屬性（實機 avc: denied read xtra_control_prop ✗）
+    //   ⇒ 讀它只會顯示「讀不到」＋持續噴 AVC 噪音 ✗
+    //   ⇒ 連常數一起刪（沒用到的常數仍會被編進 dex ✗ 造成內容驗證誤判 ✓）
 
     private static final String LOGPERSISTD_SEPOLICY_HINT =
             "set_prop(system_app, logpersistd_logging_prop)";
+
+    // ---- N 類：LineageOS 統計上報 ----
+    //   鍵名依據：lineage-sdk/sdk/src/java/lineageos/providers/LineageSettings.java:2741
+    //     public static final String STATS_COLLECTION = "stats_collection";
+    //   provider：content://lineagesettings/secure
+    //     寫入權限 lineageos.permission.WRITE_SETTINGS（signature|privileged ✓）
+    //     ⇒ 本 App 是 platform 簽章 ＋ privileged ⇒ 由簽章路徑授予 ✓
+    //     ⇒ ★不需放進 privapp 白名單 ✗（同 MANAGE_SENSOR_PRIVACY 的道理 ✓）
+    //   ★AOSP 的 Settings.Secure 【查不到】這個鍵 ✗★
+    //     已實測：settings get secure stats_collection ⇒ null ✓
+    //     （同 button_brightness 那一課：PMS 讀 LineageSettings，CLI 寫 AOSP Settings ✗）
+    //   ⇒ 必須直接走 content://lineagesettings/secure ✓
+    private static final String KEY_STATS_OFF = "stats_off";
+    private static final String LINEAGE_SECURE_URI = "content://lineagesettings/secure";
 
     private ListPreference mTier;
     private SwitchPreference mAgpsOff;
@@ -111,6 +128,7 @@ public class PrivacySettingsActivity extends PreferenceActivity {
     private SwitchPreference mSensorPrivacyOn;
     private EditTextPreference mNtpServer;
     private SwitchPreference mAutoTimeOff;
+    private SwitchPreference mStatsOff;
 
     private SensorPrivacyManager mSensorPrivacy;
 
@@ -123,6 +141,18 @@ public class PrivacySettingsActivity extends PreferenceActivity {
         mTier = (ListPreference) findPreference(KEY_TIER);
         mAgpsOff = (SwitchPreference) findPreference(KEY_AGPS_OFF);
         mAdbOff = (SwitchPreference) findPreference(KEY_ADB_OFF);
+
+        // ---- N 類：LineageOS 統計上報（stats_collection）----
+        // ★回傳 false 表示「不採用這次變更」✗ ⇒ 寫入失敗時 UI 不會假裝成功 ✓
+        mStatsOff = (SwitchPreference) findPreference(KEY_STATS_OFF);
+        if (mStatsOff != null) {
+            mStatsOff.setOnPreferenceChangeListener((p, v) -> {
+                boolean off = (Boolean) v;
+                // 寫入後立刻讀回驗證：只有真的寫進去才讓 UI 改變 ✓
+                return setLineageSecureInt("stats_collection", off ? 0 : 1)
+                        && getLineageSecureInt("stats_collection", 1) == (off ? 0 : 1);
+            });
+        }
 
         // ---- B 類：一鍵開啟系統的隱私儀表板 ----
         // 理由：平台的 Privacy Dashboard／權限管理 UI 比自造清單更完整且跟得上 AOSP 改版 ✓
@@ -359,6 +389,15 @@ public class PrivacySettingsActivity extends PreferenceActivity {
 
         if (mLogcatdStatus != null) {
             String v = readProp(PROP_LOGPERSISTD);
+            // ---- N 類：LineageOS 統計上報 現值 ----
+            if (mStatsOff != null) {
+                int sc = getLineageSecureInt("stats_collection", 1);
+                mStatsOff.setChecked(sc == 0);   // value 0 = 已關閉 ⇒ 開關顯示為 ON ✓
+                mStatsOff.setSummary("stats_collection=" + sc
+                        + (sc == 0 ? "（已關閉 ✓）" : "（★開啟中 ✗ 建議關閉 ✗）")
+                        + "\n樹內預設值為 true ⇒ 關掉之後不會再自己打開 ✓");
+            }
+
             String shown = (v == null || v.isEmpty()) ? "（空／未設定，通常代表未啟用）" : v;
             mLogcatdStatus.setSummary(getString(R.string.logcatd_summary)
                     + "\n目前 persist.logd.logpersistd=" + shown
@@ -484,6 +523,36 @@ public class PrivacySettingsActivity extends PreferenceActivity {
             return true;
         } catch (Exception e) {
             toast("USB adb：" + e.getClass().getSimpleName());
+            return false;
+        }
+    }
+
+    /** 讀 LineageSettings（★與 AOSP 的 Settings.Secure 是【不同】provider ✗★） */
+    private int getLineageSecureInt(String name, int def) {
+        try (android.database.Cursor c = getContentResolver().query(
+                android.net.Uri.parse(LINEAGE_SECURE_URI),
+                new String[]{"value"}, "name=?", new String[]{name}, null)) {
+            if (c != null && c.moveToFirst()) {
+                String v = c.getString(0);
+                if (v != null) {
+                    return Integer.parseInt(v.trim());
+                }
+            }
+        } catch (Exception e) {
+            // 讀不到 ⇒ 回預設值 ✓ 不讓單一項失敗讓 App 崩潰 ✓
+        }
+        return def;
+    }
+
+    /** 寫 LineageSettings；回傳「有沒有拋出例外」（真正的成功與否由呼叫端讀回驗證 ✓） */
+    private boolean setLineageSecureInt(String name, int value) {
+        try {
+            android.content.ContentValues cv = new android.content.ContentValues();
+            cv.put("name", name);
+            cv.put("value", String.valueOf(value));
+            getContentResolver().insert(android.net.Uri.parse(LINEAGE_SECURE_URI), cv);
+            return true;
+        } catch (Exception e) {
             return false;
         }
     }

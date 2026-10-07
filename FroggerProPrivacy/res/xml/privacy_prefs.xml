@@ -36,6 +36,14 @@
             android:summary="檢視／調整每個 App 的相機、麥克風、定位權限（交由平台 UI 處理 ✓）"
             android:persistent="false" />
 
+        <!-- N 類：LineageOS 統計上報（stats_collection ✓ 機制已實機驗證 ✓）
+             樹內預設 true（開啟 ✗）⇒ 提供關閉開關 ✓；用字面標題 ⇒ 不必動 strings.xml ✓ -->
+        <SwitchPreference
+            android:key="stats_off"
+            android:title="關閉 LineageOS 統計上報"
+            android:summary="stats_collection=0（關閉）／1（開啟）。樹內預設為開啟 ⇒ 可確實關閉 ✓"
+            android:persistent="false" />
+
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/cat_network">

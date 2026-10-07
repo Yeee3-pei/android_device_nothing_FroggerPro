@@ -10,6 +10,12 @@
     <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS" />
     <uses-permission android:name="android.permission.WRITE_SETTINGS" />
 
+    <!-- LineageSettings（content://lineagesettings ✓）的寫入權限
+         lineageos.permission.WRITE_SETTINGS 屬 signature|privileged ✓
+         本 App 為 platform 簽章 ＋ privileged ⇒ 由【簽章】路徑授予 ✓
+         ⇒ ★不放進 privapp 白名單 ✗★（同 MANAGE_SENSOR_PRIVACY 的處理 ✓） -->
+    <uses-permission android:name="lineageos.permission.WRITE_SETTINGS" />
+
     <!--
         DeviceConfig（廣告框架 AdServices 等）讀寫需要。
         兩者皆為 signature 級（protectionLevel = signature|verifier|configurator /
