@@ -19,6 +19,15 @@
     <uses-permission android:name="android.permission.WRITE_DEVICE_CONFIG" />
     <uses-permission android:name="android.permission.READ_DEVICE_CONFIG" />
 
+    <!--
+        相機／麥克風系統層封鎖需要。
+        SensorPrivacyManager.setSensorPrivacy() 為 @SystemApi 且
+        @RequiresPermission(MANAGE_SENSOR_PRIVACY)
+        （SensorPrivacyManager.java:795-801 ✓）；protectionLevel = signature
+        ⇒ 本 App 以 platform 憑證簽章 ⇒ 符合 ✓
+    -->
+    <uses-permission android:name="android.permission.MANAGE_SENSOR_PRIVACY" />
+
     <application
         android:label="@string/app_name"
         android:icon="@android:drawable/ic_lock_lock"

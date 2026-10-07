@@ -10,8 +10,8 @@
     <string name="tier_summary">一次套用一組開關；下方個別開關可再覆寫</string>
     <string-array name="tier_entries">
         <item>最低（維持現狀，不對系統做任何更動）</item>
-        <item>標準（關閉網路輔助定位 AGPS ＋ 停用廣告框架）</item>
-        <item>嚴格（標準 ＋ 關閉網路探測 ＋ 關閉 USB adb）</item>
+        <item>標準（AGPS 關 ＋ 廣告框架關 ＋ 相機麥克風封鎖 ＋ 定位僅裝置 ＋ 掃描關 ＋ NFC 關）</item>
+        <item>嚴格（標準 ＋ 關閉網路探測 ＋ 關閉 USB adb ＋ 關閉自動時間）</item>
         <item>自訂（不自動套用；請手動調整下方開關）</item>
     </string-array>
     <string-array name="tier_values">
@@ -21,6 +21,15 @@
         <item>custom</item>
     </string-array>
 
+    <!-- 分類標題 -->
+    <string name="cat_network">網路／時間</string>
+    <string name="cat_location">定位</string>
+    <string name="cat_sensors">感測器</string>
+    <string name="cat_radio">無線</string>
+    <string name="cat_ads">廣告框架</string>
+    <string name="cat_logs">紀錄</string>
+
+    <!-- 網路／時間 -->
     <string name="captive_portal_title">關閉網路探測（captive portal 檢查）</string>
     <string name="captive_portal_summary">系統不再自動連線檢查是否被閘道劫持。副作用：公共 Wi‑Fi 的登入頁不會自動彈出，需手動開啟瀏覽器。</string>
 
@@ -29,27 +38,67 @@
     <string name="private_dns_host_title">DoT 主機名</string>
 
     <string name="agps_title">停用網路輔助定位（AGPS／XTRA）</string>
-    <string name="agps_summary">關閉後系統不再下載 Qualcomm XTRA 星曆（不再連 time.xtracloud.net）。僅影響網路輔助，GPS 本體仍可用；緊急電話會強制開啟。驗證：adb shell settings get global assisted_gps_enabled
-次要驗證：adb shell getprop persist.sys.xtra-daemon.enabled</string>
+    <string name="agps_summary">關閉後系統不再下載 Qualcomm XTRA 星曆（不再連 time.xtracloud.net）。僅影響網路輔助，GPS 本體仍可用；緊急電話會強制開啟。驗證：adb shell settings get global assisted_gps_enabled</string>
 
     <string name="adb_title">停用 USB adb</string>
-    <string name="adb_summary">關閉後插上 USB 不再自動開啟 adb 除錯通道（等同開發者選項的 USB 偵錯關）。驗證：adb shell settings get global adb_enabled</string>
+    <string name="adb_summary">關閉後插上 USB 不再自動開啟 adb 除錯通道。驗證：adb shell settings get global adb_enabled</string>
 
+    <string name="ntp_title">NTP 時間伺服器</string>
+    <string name="ntp_summary">留空＝使用系統預設（AOSP 預設會連 pool.ntp.org）。可填入自架或區網 NTP 以減少對外連線。驗證：adb shell settings get global ntp_server</string>
+
+    <string name="auto_time_title">關閉自動時間／時區</string>
+    <string name="auto_time_summary">關閉後系統不再以 NTP／電信網路校正時間（減少對外查詢面）。副作用：時間需自行校正。驗證：adb shell settings get global auto_time</string>
+
+    <!-- 定位 -->
+    <string name="location_title">定位僅使用裝置（不用網路定位）</string>
+    <string name="location_summary">開啟後 location_mode=1：位置只來自 GPS／感測器，不經 WiFi／基地台資料庫推估。副作用：室內定位變慢或不準。驗證：adb shell settings get secure location_mode</string>
+
+    <string name="wifi_scan_title">關閉 Wi-Fi 永遠可掃描</string>
+    <string name="wifi_scan_summary">關閉後即使 Wi-Fi 關閉也不再持續掃描（掃描結果可被用來推估位置）。驗證：adb shell settings get global wifi_scan_always_enabled</string>
+
+    <string name="ble_scan_title">關閉藍牙永遠可掃描</string>
+    <string name="ble_scan_summary">關閉後不再持續做藍牙低功耗掃描（可用於鄰近推估）。驗證：adb shell settings get global ble_scan_always_enabled</string>
+
+    <!-- 感測器 -->
+    <string name="sensor_privacy_title">封鎖相機與麥克風（系統層）</string>
+    <string name="sensor_privacy_summary">以 SensorPrivacyManager 在系統層阻斷所有 App 的相機與麥克風存取（等同快速設定的相機／麥克風開關）。此狀態儲存於系統 XML（非 Settings），需 MANAGE_SENSOR_PRIVACY（platform 簽章）。驗證：adb shell dumpsys sensor_privacy</string>
+    <string name="sensor_privacy_note_title">為何用 SensorPrivacyManager 而不是 Settings</string>
+    <string name="sensor_privacy_note_summary">相機／麥克風的軟體開關狀態存在 SensorPrivacyService 的 PersistedState XML 內，不是 Settings 的一列。因此本 App 走 SensorPrivacyManager.setSensorPrivacy()（@SystemApi，需 MANAGE_SENSOR_PRIVACY）而非寫 Settings。</string>
+
+    <!-- 無線 -->
+    <string name="nfc_title">關閉 NFC</string>
+    <string name="nfc_summary">關閉後不再讀取鄰近 NFC 標籤／感應（減少被動接觸面）。驗證：adb shell settings get global nfc_on</string>
+
+    <!-- 廣告 -->
     <string name="adservices_title">停用廣告框架（AdServices）</string>
-    <string name="adservices_summary">AOSP 內建 com.android.adservices（Topics／FLEDGE 等廣告 API）。預設即為停用。驗證：adb shell device_config get adservices adservice_enabled
-（false ＝ 已停用）</string>
+    <string name="adservices_summary">AOSP 內建 com.android.adservices（Topics／FLEDGE 等廣告 API）。預設即為停用。驗證：adb shell device_config get adservices adservice_enabled</string>
 
+    <!-- 紀錄 -->
     <string name="logcatd_title">持久 logcatd（開機落地寫 log）狀態</string>
     <string name="logcatd_summary">唯讀資訊，非開關。</string>
-
     <string name="logcatd_note_title">為何 logcatd 只能顯示狀態</string>
-    <string name="logcatd_note_summary">本 App 目前不是 system_app 網域，SELinux 不允許直接寫入 persist.logd.logpersistd。若要能在 App 內切換，需在 device sepolicy 加上：set_prop(system_app, logpersistd_logging_prop)，並讓本 App 以 android.uid.system 執行。此處刻意只顯示狀態，不提供假開關。</string>
+    <string name="logcatd_note_summary">本 App 目前不是 system_app 網域，SELinux 不允許直接寫入 persist.logd.logpersistd。若要能在 App 內切換，需在 device sepolicy 加上 set_prop(system_app, logpersistd_logging_prop)，並讓本 App 以 android.uid.system 執行。此處刻意只顯示狀態，不提供假開關。</string>
 
-    <string name="readonly_cat_title">唯讀（只能建置期變更，不提供假開關）</string>
+    <!-- 唯讀（C 類／資訊型；只能建置期或屬環境現況） -->
+    <string name="readonly_cat_title">唯讀說明（無法在 App 內變更）</string>
+
     <string name="adb_secure_title">adb 免授權（ro.adb.secure）</string>
-    <string name="adb_secure_summary">ro.* 屬性只能在建置期設定，執行期不可改。目前值請用：adb shell getprop ro.adb.secure（0 ＝ 插 USB 免授權，較不安全）</string>
-    <string name="vendor_title">廠商遙測元件（diagzn／psiclient 等）</string>
-    <string name="vendor_summary">屬 C 類：以 init service 啟動，執行期停止需 root。處理方式為在隱私版建置期移除，不在此提供開關。</string>
+    <string name="adb_secure_summary">ro.* 屬性只能在建置期設定。目前值：adb shell getprop ro.adb.secure（0 ＝ 插 USB 免授權，較不安全；隱私版建議建置期改 1）</string>
+
+    <string name="vendor_title">廠商遙測元件（diagzn／psiclient／wifilearner／perfd）</string>
+    <string name="vendor_summary">屬 C 類：以 init service 啟動，執行期停止需 root。處理方式為在隱私版建置期從 blob copy 清單移除；移除後須實機驗證通話／行動數據／訊號。</string>
+
+    <string name="kernel_title">核心強化參數（dmesg_restrict／perf_event_paranoid）</string>
+    <string name="kernel_summary">屬 C 類（/proc/sys 寫入需 root）。本機現況：dmesg_restrict=0（任何 App 可讀核心日誌）、perf_event_paranoid=-1（效能事件全開）。建議隱私版建置期設 1 與 2/3。驗證：adb shell cat /proc/sys/kernel/dmesg_restrict</string>
+
+    <string name="updater_title">LineageOS 更新程式（對外查詢）</string>
+    <string name="updater_summary">org.lineageos.updater 存在，會向 LineageOS API 查詢是否有新版本（屬對外連線）。目前無執行期開關；可在系統設定停用該 App，或由隱私版建置期移除。</string>
+
+    <string name="mac_title">Wi-Fi MAC 隨機化現況</string>
+    <string name="mac_summary">本機實測連線使用隨機 MAC（useRandomizedMac=true），且硬體支援 CONNECTED_RAND_MAC。此為正向現況，無需開關。驗證：adb shell dumpsys wifi | grep -i mac</string>
+
+    <string name="widevine_title">Widevine DRM（com.google.android.widevine）</string>
+    <string name="widevine_summary">屬 C 類：Google 專有 APEX，無執行期停用機制。移除的代價是 Netflix／Disney+ 等 DRM 播放失效。建議做成兩支版本由使用者選擇。</string>
 
     <string name="verify_hint">所有開關皆對應真實系統設定；每項摘要附有可重現的 adb 驗證指令。</string>
 </resources>
