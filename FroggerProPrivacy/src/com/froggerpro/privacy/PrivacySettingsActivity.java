@@ -77,6 +77,17 @@ public class PrivacySettingsActivity extends PreferenceActivity {
     private static final String KEY_NTP_SERVER = "ntp_server";
     private static final String KEY_AUTO_TIME_OFF = "auto_time_off";
 
+    // ---- 2026-10-08 新增：無 SIM 自動飛航（★實測驅動 ✗★）----
+    //   由來 ✓：實機量到沒插 SIM 時（gsm.sim.state=ABSENT ✗）
+    //     dumpsys batterystats ⇒ 螢幕關閉/doze 段 316.5 mAh ✗ 其中 ★299 mAh 是 mobile_radio ✗★
+    //     ⇒ modem 持續全頻掃描／反覆註冊 ✗ ⇒ 待機 1.86 %/h ✗（使用者觀察 3 小時 5% ✓ 吻合 ✓）
+    //   機制實測 ✓（本機 adb 驗證 ✓）：只靠
+    //     Settings.Global.putInt(AIRPLANE_MODE_ON, 1)
+    //     系統就會生效 ✓（cmd connectivity airplane-mode：disabled → ★enabled★ ✓）
+    //     ⇒ 我方 App 用既有權限 WRITE_SECURE_SETTINGS ✓ 即可 ✓ 不需 SystemApi ✗
+    private static final String KEY_NOSIM_AIRPLANE = "nosim_airplane_off";
+    private SwitchPreference mNosimAirplane;
+
     // ---- 系統設定鍵 ----
     private static final String DNS_MODE_GLOBAL = "private_dns_mode";
     private static final String DNS_SPECIFIER_GLOBAL = "private_dns_specifier";
@@ -193,6 +204,8 @@ public class PrivacySettingsActivity extends PreferenceActivity {
         mSensorPrivacyOn = (SwitchPreference) findPreference(KEY_SENSOR_PRIVACY_ON);
         mNtpServer = (EditTextPreference) findPreference(KEY_NTP_SERVER);
         mAutoTimeOff = (SwitchPreference) findPreference(KEY_AUTO_TIME_OFF);
+        mNosimAirplane = (SwitchPreference) findPreference(KEY_NOSIM_AIRPLANE);
+        wireNosimAirplane();
 
         try {
             mSensorPrivacy = getSystemService(SensorPrivacyManager.class);
@@ -337,6 +350,64 @@ public class PrivacySettingsActivity extends PreferenceActivity {
         }
     }
 
+    // ★2026-10-08：無 SIM 自動飛航（feature 2 ✓ 實測驅動 ✗）
+    //   觸發時機：使用者切換本開關時 ✓（✓ 開機後不主動改 ✓ 避免使用者意外被斷網 ✗）
+    private void wireNosimAirplane() {
+        if (mNosimAirplane == null) {
+            return;
+        }
+        mNosimAirplane.setOnPreferenceChangeListener((p, v) -> {
+            boolean want = (Boolean) v;
+            if (want) {
+                if (isSimAbsent()) {
+                    setAirplaneMode(true);
+                } else {
+                    toast("有偵測到 SIM 卡 ⇒ 未開啟飛航（本開關只用於無卡情境）");
+                }
+            } else {
+                // 關閉本功能 ⇒ 一併解除飛航 ✓（否則使用者會找不到怎麼恢復網路 ✗）
+                setAirplaneMode(false);
+            }
+            syncFromSystem();
+            return true;
+        });
+    }
+
+    /** 兩張卡都沒 READY ⇒ 視為無 SIM ✓（用屬性讀取 ✓ 不需 READ_PHONE_STATE ✗） */
+    private boolean isSimAbsent() {
+        try {
+            String sim = SystemProperties.get("gsm.sim.state", "");
+            if (sim.isEmpty()) {
+                return true;
+            }
+            for (String s : sim.split(",")) {
+                if (s.trim().contains("READY")) {
+                    return false;
+                }
+            }
+            return true;
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    private boolean isAirplaneModeOn() {
+        return Settings.Global.getInt(getContentResolver(),
+                Settings.Global.AIRPLANE_MODE_ON, 0) == 1;
+    }
+
+    /** ★實測確認可用 ✓：只 putInt、系統即生效 ✓（cmd connectivity airplane-mode ⇒ enabled ✓） */
+    private boolean setAirplaneMode(boolean on) {
+        try {
+            Settings.Global.putInt(getContentResolver(),
+                    Settings.Global.AIRPLANE_MODE_ON, on ? 1 : 0);
+            return true;
+        } catch (Exception e) {
+            toast("飛航模式：" + e.getClass().getSimpleName());
+            return false;
+        }
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -361,7 +432,24 @@ public class PrivacySettingsActivity extends PreferenceActivity {
             mAgpsOff.setSummary(getString(R.string.agps_summary)
                     + "\n目前 assisted_gps_enabled=" + agps
                     + "（0 = 已停用網路輔助 ✓）");
-        }
+            }
+
+            // ★2026-10-08：無 SIM 自動飛航的狀態顯示（★只顯示實測得出的事實 ✗★）
+            if (mNosimAirplane != null) {
+            boolean noSim = isSimAbsent();
+            boolean apm = isAirplaneModeOn();
+            mNosimAirplane.setChecked(noSim && apm);
+            String simNow;
+            try {
+                simNow = SystemProperties.get("gsm.sim.state", "（讀不到）");
+            } catch (Throwable t) {
+                simNow = "（讀不到）";
+            }
+            mNosimAirplane.setSummary(getString(R.string.nosim_airplane_summary)
+                    + "\n目前 gsm.sim.state=" + simNow
+                    + "（無 READY 即視為無卡 ✓）"
+                    + "\n目前 airplane_mode_on=" + (apm ? 1 : 0));
+            }
 
         int adb = Settings.Global.getInt(getContentResolver(), Settings.Global.ADB_ENABLED, 0);
         if (mAdbOff != null) {

@@ -101,3 +101,120 @@ set_prop(vendor_init, vendor_ssr_prop)
 #        ★絕不可為此放寬 sysfs 泛型 ✗（那等於廢掉 SELinux 的 sysfs 保護 ✗）★
 #  11) permissioncontroller_app 探測 vendor.qti.qspmhal 服務 ＋ search system_data_file
 #      ⇒ 認證控制器列舉服務時的可容忍失敗 ✓ 屬噪音 ✗
+
+
+# ── 6) vendor_location 的 socket 建立被拒（2026-10-08 02:3x 刷後實測 ✗）──────────
+#   ★重要 ✗：先前（#3）只修了 netlink_route_socket ✗ ⇒ 刷後下一層浮出來 ✗
+#     ⇒ 這條才是完整的需要 ✓（數量變多不是變糟 ✓ 是修好一層 ⇒ 下一層現形 ✓）
+#   實機原文（逐字，多條）：
+#     avc: denied { create } for comm="loc-mq-thread"
+#       scontext=u:r:vendor_location:s0 tcontext=u:r:vendor_location:s0 tclass=netlink_generic_socket
+#     avc: denied { create } for comm="lowi-server"
+#       scontext=u:r:vendor_location:s0 tcontext=u:r:vendor_location:s0 tclass=qipcrtr_socket
+#     avc: denied { create } for comm="loc-mq-thread"
+#       scontext=u:r:vendor_location:s0 tcontext=u:r:vendor_location:s0 tclass=udp_socket
+#   影響：定位服務（loc-mq-thread／lowi-server）無法建立所需 socket ⇒ 位置功能受限 ✗
+#     ★qipcrtr_socket = 對 modem 的 QMI 通道 ✗★（GNSS 資料回傳路徑 ✓）
+#   背景：政策內已有 (type vendor_location_socket) ✓ 但只有
+#         (allow vendor_hal_gnss_qti vendor_location_socket …) ✓ ⇒ ★自己不能用自己的 socket ✗★
+allow vendor_location self:{ netlink_generic_socket netlink_route_socket udp_socket qipcrtr_socket } { create bind read write getattr };
+
+# ── 7) bt.a2dp_offload_cap 的真正標籤是 bluetooth_prop（★不是 vendor_ ✗★）──────────
+#   實機原文：
+#     avc: denied { set } for property=persist.vendor.bt.a2dp_offload_cap
+#       scontext=u:r:vendor_init:s0 tcontext=u:object_r:★bluetooth_prop★:s0
+#   為何是 plat 型別（已查明 ✓）：編譯後
+#     system_ext/etc/selinux/system_ext_property_contexts:74
+#       persist.vendor.bt.a2dp        u:object_r:bluetooth_prop:s0
+#     ⇒ 較廣的前綴命中 ⇒ 蓋過 vendor_property_contexts 的
+#       persist.vendor.bluetooth.a2dp.  u:object_r:vendor_bluetooth_prop:s0 ✓
+#   ⚠️ 本條可能被 neverallow 擋 ✗（plat 型別給 vendor 域寫 ✗）
+#      ⇒ 若建置失敗 ⇒ 依 C337 的紀律：改回註解 ＋ 保留證據 ✗ 不繞路 ✗
+# ★※本條【已實驗證明不可行】※★（2026-10-08 02:42 實測 ✗）
+#   原本寫法：set_prop(vendor_init, bluetooth_prop)
+#   ⇒ 建置被 neverallow 擋死 ✗（rom-privacy-inc5 rc=1）
+#        neverallow check failed at plat_sepolicy.cil:54440 from system/sepolicy/private/property.te:291
+#          (neverallow base_typeattr_912 bluetooth_prop (file (ioctl read write create …)))
+#        neverallow check failed at plat_sepolicy.cil:54395 from system/sepolicy/private/property.te:291
+#          (neverallow base_typeattr_912 bluetooth_prop (property_service (set)))
+#        兩條的 allow at vendor_sepolicy.cil:29247/29250 ← froggerpro_avc_fixes.te（本檔 ✗）
+#   ⇒ ★neverallow 明文禁止 vendor 域寫 plat 型別 bluetooth_prop ✗ 不可繞 ✗★
+#
+#   ★★ 進階教訓（值得記 ✗）★★：
+#     一個 `set_prop(DOMAIN, TYPE)` 巨集會展開成【兩條】規則
+#       （一條 file 權限 ＋ 一條 property_service set ✓）
+#     ⇒ 所以【一條】set_prop 就會產生【2 個 neverallow 失敗】✗
+#       看到「2 neverallow failures」不代表有兩條規則寫錯 ✓ 要讀 allow at … 的來源行 ✓
+#
+#   現況（尚未解決 ✗ 留待日後 ✓）：
+#     persist.vendor.bt.a2dp_offload_cap 的執行期標籤是 ★bluetooth_prop★（plat ✗）
+#       依據：編譯後 system_ext/etc/selinux/system_ext_property_contexts:74
+#             persist.vendor.bt.a2dp        u:object_r:bluetooth_prop:s0
+#       （較廣的前綴命中 ⇒ 蓋過 vendor_property_contexts 的
+#          persist.vendor.bluetooth.a2dp. → vendor_bluetooth_prop ✓）
+#     影響：我方 vendor.prop:52 的 A2DP 編碼能力清單【沒被套用】✗
+#           ⇒ BT 音訊編碼協商可能只用預設集合 ✗（功能差異 ✗ 非崩壞 ✓）
+#     日後正確做法（✗ 不是放寬 allow ✗）：
+#       ① 在【我方】vendor property_contexts 用更精確的前綴蓋掉那個廣域命中 ✓
+#          （注意：兩個分割區的同名前綴會衝突 ✗ 需確認優先序 ✓）
+#       ② 或改由【plat 端】設定該屬性 ✓（例如放進 system.prop／由 system_app 設 ✓）
+#       ★不可做✗：allow vendor_init bluetooth_prop ✗（neverallow 明文禁止 ✓）
+
+
+# ── 8) ★★根因修正：vendor_location 的【網域轉換】✗★★（2026-10-08 08:1x 查證 ✓）
+#
+# 症狀（實機 ✗）：
+#   vendor_location 的 denied 由 2 → 13 → ★57 ✗★ 一路變多（每 5 秒一條循環 ✗）
+#   實機逐字：avc: denied { setopt } for comm="loc-mq-thread"
+#     scontext=u:r:vendor_location:s0 tcontext=u:r:vendor_location:s0
+#     tclass=netlink_generic_socket permissive=0
+#   ＋ avc: denied { ioctl } … path="socket:[35008]" tclass=udp_socket ioctlcmd=0x8927
+#
+# 查證（全部有實機／政策原文 ✓）：
+#   ① /vendor/bin/lowi-server 的標籤【是對的】✓ u:object_r:vendor_location_lowi_server_exec:s0
+#   ② 它在 /vendor/etc/init/ 裡【沒有自己的 rc】✗
+#      ⇒ 它是由【父行程】exec 起來的（父＝loc_launcher ✓ 標籤 vendor_location_exec ✓
+#         ⇒ 對應網域 vendor_location ✓）
+#   ③ 編譯後政策內【已存在】子網域的完整權限 ✓（cil 逐字 ✗）：
+#        (allow vendor_location_lowi_server self (netlink_generic_socket
+#               (read write create getattr setattr lock append map bind connect
+#                ★getopt setopt shutdown★)))
+#        (allow vendor_location_lowi_server self (udp_socket (ioctl … ★setopt★ …)))
+#        (allowx vendor_location_lowi_server self (ioctl udp_socket (★0x8927★ …)))
+#      ⇒ ★它們要的權限，子網域【全都已經有】✗★
+#   ④ ⇒ 缺的只有【父域 → 子域】的 exec 轉換 ✗
+#      SELinux 不會自動轉換 ✓ ⇒ 子行程停在父域 vendor_location ✗
+#      ⇒ ★拿不到子域那整套已寫好的權限 ✗★ ⇒ 功能受限 ＋ 每 5 秒噴 AVC ✗
+#
+# 修法（★root fix ✓ 而不是繼續放寬父域 ✗★）：
+#   domain_auto_trans(舊域, 執行檔型別, 新域) 巨集 ＝
+#     allow 舊域 執行檔:file { read open getattr execute } ＋
+#     type_transition 舊域 執行檔:process 新域 ＋
+#     allow 舊域 新域:process transition ✓
+#   ⇒ 一個巨集就把「轉換」所需的三件事一次寫齊 ✓（AOSP 標準寫法 ✓）
+domain_auto_trans(vendor_location, vendor_location_lowi_server_exec, vendor_location_lowi_server)
+
+# ── 9) ★臉部解鎖（C340 刷後唯一可能真的影響功能的一條 ✗）★
+#
+# 9a) create dir（★核心 ✗★）
+#   實機逐字：avc: denied { create } for comm="android.hardwar" name="sdk"
+#             scontext=u:r:hal_face_default:s0 tcontext=u:object_r:face_vendor_data_file:s0
+#   政策原文 ✓：
+#     system/sepolicy/private/hal_face.te:15
+#       allow {hal_face -coredomain} face_vendor_data_file:dir rw_dir_perms;
+#     ⇒ rw_dir_perms ＝ { open read write search add_name remove_name reparent } ✗
+#       ★不含 create ✗★ ⇒ 實機的 deny { create } 完全對上 ✓
+#   為何需要：Nothing 的臉部 HAL 要在 facedata 下建 sdk 子目錄 ✓
+#   ⇒ 只補【缺的那一個】perm ✓（✗ 不整包放寬 ✗）
+#   ⚠️ 註 ✗：AOSP 原意是 vold_prepare_subdirs 先備好該目錄 ✓
+#     若下一輪發現目錄其實已存在、create 不再出現 ⇒ 應回頭評估收回這條 ✓
+allow hal_face_default face_vendor_data_file:dir create;
+
+# 9b) 除錯 log tag（★低風險 ✗★）
+#   實機：denied { set } for property=log.tag.NT_FaceUnlock
+#   標籤 ✓：plat_property_contexts 內 `log.tag` 前綴 ⇒ u:object_r:log_tag_prop:s0 ✓
+set_prop(hal_face_default, log_tag_prop)
+
+# 註：本檔前段（#6）那組 allow vendor_location self:{…} 是【轉換修好之前】的暫時補丁 ✓
+#     轉換生效後它們多半變成多餘 ✗ ⇒ 先保留一輪觀察 ✓
+#     下一輪若 denied 歸零 ⇒ 應【移除】它們以維持最小權限 ✓

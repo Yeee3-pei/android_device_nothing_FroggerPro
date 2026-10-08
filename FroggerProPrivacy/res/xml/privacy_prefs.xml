@@ -130,6 +130,18 @@
 
     <PreferenceCategory android:title="@string/cat_radio">
 
+        <!-- 2026-10-08：無 SIM 自動飛航（★實測驅動 ✗★）
+             由來 ✓：沒插 SIM 時 dumpsys batterystats 顯示螢幕關閉/doze 段
+                     316.5 mAh ✗ 其中 299 mAh 是 mobile_radio ✗（modem 一直掃描註冊 ✗）
+             機制 ✓：Settings.Global.putInt(AIRPLANE_MODE_ON, 1) 系統即生效 ✓（已實測 ✓）
+             設計 ✓：只在【使用者切換】時動作 ✓ 不主動在開機時改 ✗（避免使用者莫名斷網 ✗）
+             標題／摘要用字面值 ⇒ 不必為此動 strings.xml ✓（摘要內容由程式動態覆寫 ✓） -->
+        <SwitchPreference
+            android:key="nosim_airplane_off"
+            android:title="無 SIM 時自動開啟飛航"
+            android:summary="沒插 SIM 卡時，讓 modem 停止持續掃描以省電（無線電佔待機耗電約 93% ✗）"
+            android:persistent="false" />
+
         <SwitchPreference
             android:key="nfc_off"
             android:title="@string/nfc_title"

@@ -39,6 +39,7 @@
 
     <string name="agps_title">停用網路輔助定位（AGPS／XTRA）</string>
     <string name="agps_summary">關閉後系統不再下載 Qualcomm XTRA 星曆（不再連 time.xtracloud.net）。僅影響網路輔助，GPS 本體仍可用；緊急電話會強制開啟。驗證：adb shell settings get global assisted_gps_enabled</string>
+    <string name="nosim_airplane_summary">實測：沒插 SIM 時 modem 會持續全頻掃描／反覆註冊，占待機耗電約 93%（dumpsys batterystats：螢幕關閉段 316.5 mAh 中 299 mAh 是 mobile_radio）。開啟本項＝讓系統進入飛航模式以停止掃描；關閉本項會一併解除飛航。驗證：adb shell cmd connectivity airplane-mode</string>
 
     <string name="adb_title">停用 USB adb</string>
     <string name="adb_summary">關閉後插上 USB 不再自動開啟 adb 除錯通道。驗證：adb shell settings get global adb_enabled</string>

@@ -89,6 +89,40 @@
     <!-- Whether the Unprocessed audio source supports the required frequency range and level -->
     <bool name="config_supportAudioSourceUnprocessed">true</bool>
 
+    <!-- ★★2026-10-08：相機／麥克風隱私開關的支援旗標 ✗（使用者回報「按鍵不能用」✗）★★
+
+         真因 ✓（全部有原始碼原文 ✗）：
+           AOSP 預設【兩者皆 false ✗】：
+             frameworks/base/core/res/res/values/config.xml:6924
+               <bool name="config_supportsMicToggle">false</bool>
+             frameworks/base/core/res/res/values/config.xml:6926
+               <bool name="config_supportsCamToggle">false</bool>
+           ⇒ SensorPrivacyService.setToggleSensorPrivacy 會【直接 return ✗ 不報錯 ✗】：
+             …/services/core/java/com/android/server/sensorprivacy/SensorPrivacyService.java:839
+               if (enable && !supportsSensorToggle(TOGGLE_TYPE_SOFTWARE, sensor)) {
+                   // Do not enable sensor privacy if the device doesn't support it
+                   return;
+               }
+           ⇒ ★任何「開啟」請求被靜默丟棄 ✗★
+
+         實機症狀 ✓（全部對上 ✗）：
+           ① 我方隱私 App 的「封鎖相機與麥克風」開關 → 無效果 ✗
+           ② 系統自己的 `cmd sensor_privacy enable 0 camera` → 回報成功但無效果 ✗
+           ③ /data/system/sensor_privacy.xml 與 sensor_privacy_impl.xml
+              mtime 停在開機時刻（15:41）⇒ ★從未產生任何 state 條目 ✗★
+           ④ dumpsys sensor_privacy 幾乎空白 ✗（只有 storage_implementation ✓）
+
+         為何確定硬體支援 ✓：
+           ★同一個檔案內已定義 config_cameraPrivacyLightColors ✗（相機隱私指示燈 ✓）
+           ⇒ 這是【移植時漏掉的覆寫】✗ 不是硬體不支援 ✓★
+
+         ⚠️ 注意 ✗：AOSP 另有 config_sensorPrivacyRequiresAuthentication = true ✓
+            ⇒ 只在【裝置鎖定時】才要求驗證 ✓（SensorPrivacyService.java:1099-1100 ✓）
+            ⇒ 解鎖狀態下不受影響 ✓
+    -->
+    <bool name="config_supportsCamToggle">true</bool>
+    <bool name="config_supportsMicToggle">true</bool>
+
     <!-- Indicate whether to allow the device to suspend when the screen is off
          due to the proximity sensor.  This resource should only be set to true
          if the sensor HAL correctly handles the proximity sensor as a wake-up source.

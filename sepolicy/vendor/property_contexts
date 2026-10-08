@@ -37,3 +37,8 @@ persist.vendor.st_nfc_felica_fsi       u:object_r:vendor_nfc_prop:s0
 persist.vendor.nfc_cfg.mode_name       u:object_r:vendor_nfc_prop:s0
 persist.vendor.nfc_getcplc_completed   u:object_r:vendor_nfc_prop:s0
 persist.vendor.sfdc                    u:object_r:vendor_sfdc_prop:s0
+
+# 2026-10-08：C 修正 —— 沒插 SIM 時 persist.vendor.bt.a2dp_offload_cap 一直被拒 ✗
+# 根因：建置合併後的 vendor_property_contexts【沒有】這條 ✗（樹內那條在未使用的 legacy-um ✗）
+#      ⇒ 落到預設標籤 bluetooth_prop(plat) ✗ ⇒ 我方 set_prop(vendor_init, vendor_bluetooth_prop) 對不上 ✗
+persist.vendor.bt.a2dp_offload_cap              u:object_r:vendor_bluetooth_prop:s0
