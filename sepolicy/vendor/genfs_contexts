@@ -1,7 +1,9 @@
 # Battery
 genfscon proc /touchpanel/TP_charger_flags   u:object_r:vendor_proc_power_supply:s0
 genfscon sysfs /class/power_supply/battery u:object_r:vendor_sysfs_battery_supply:s0
-genfscon sysfs /class/qcom-battery u:object_r:vendor_sysfs_battery_supply:s0
+# 2026-10-08 移除：與上游 sm8750/generic/vendor/common/genfs_contexts:194 逐字重複 ✗
+#   ⇒ checkpolicy 報 duplicate entry for genfs entry (sysfs, /class/qcom-battery) ✗
+#   ⇒ 依鐵律：移植檔只保留【上游還沒提供】的條目 ✓
 
 # Charger 
 genfscon sysfs /class/qcom-battery/usb_real_type u:object_r:vendor_sysfs_battery_supply:s0
