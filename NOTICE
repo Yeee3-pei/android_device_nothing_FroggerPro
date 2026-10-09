@@ -1,0 +1,35 @@
+FroggerPro device tree — provenance / attribution
+==================================================
+
+Upstream
+--------
+This device tree is a fork of:
+
+    AmphibianArcade/android_device_nothing_FroggerPro   (branch: lineage-23.2)
+
+The upstream commit history is retained in full (131 commits by its authors) and
+upstream is merged into this branch regularly. The large majority of the files in
+this tree are upstream work; this fork's contribution is a delta on top of it.
+
+Local changes
+-------------
+Local changes are kept one item per commit, each stating the reason and the
+on-device evidence that verifies it. The written record of every source/config
+change — file, before/after, reason, how it was verified — lives in the project
+CHANGELOG outside this repository.
+
+Attribution correction
+----------------------
+Commit fd54aa3 (2026-10-07, "Revert FroggerPro: sepolicy: label the
+leds/battery/vibrator sysfs path family (contexts batch 1/25)") is a local
+action by this fork's maintainer. It was committed under an incorrect author
+identity (AmphibianArcade) and is not an action by the upstream project.
+See also the local revert of the batch it reverts.
+
+Maintained by
+-------------
+Yeee3-pei  (https://github.com/Yeee3-pei)
+
+Bug reports and questions: please use GitHub issues on the fork, not upstream
+channels — problems in the local delta are the fork's responsibility, not the
+upstream maintainer's.
